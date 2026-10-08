@@ -1,8 +1,12 @@
-package py.edu.uc.lp3.minecraft;
+package py.edu.uc.lp3.domain;
 
 public final class Zombie extends MobHostil {
     private final double velocidad;
     private boolean quemandose;
+
+    public Zombie(String nombre, Vector3D ubicacion) {
+        this(nombre, ubicacion, 1.5);
+    }
 
     public Zombie(String nombre, Vector3D ubicacion, double velocidad) {
         super(nombre, TipoEntidad.ZOMBIE, 20, ubicacion, 20, 0, 3, 35);

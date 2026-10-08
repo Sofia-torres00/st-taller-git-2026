@@ -1,4 +1,4 @@
-package py.edu.uc.lp3.minecraft;
+package py.edu.uc.lp3.domain;
 
 public final class Cerdo extends Animal {
     private final boolean montable;

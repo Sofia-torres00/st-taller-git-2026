@@ -1,4 +1,4 @@
-package py.edu.uc.lp3.minecraft;
+package py.edu.uc.lp3.domain;
 
 public final class Enderman extends MobHostil {
     private final boolean puedeTomarBloques;

@@ -1,4 +1,4 @@
-package py.edu.uc.lp3.minecraft;
+package py.edu.uc.lp3.domain;
 
 public final class Esqueleto extends MobHostil {
     private boolean tieneArco;

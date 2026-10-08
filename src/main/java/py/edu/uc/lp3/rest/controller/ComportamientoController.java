@@ -1,15 +1,15 @@
-package py.edu.uc.lp3.st.ST_taller_git_2026.web;
+package py.edu.uc.lp3.rest.controller;
 
 import java.util.List;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import py.edu.uc.lp3.minecraft.Creeper;
-import py.edu.uc.lp3.minecraft.Entidad;
-import py.edu.uc.lp3.minecraft.TipoEntidad;
-import py.edu.uc.lp3.minecraft.Vector3D;
-import py.edu.uc.lp3.minecraft.Zombie;
+import py.edu.uc.lp3.domain.Creeper;
+import py.edu.uc.lp3.domain.Entidad;
+import py.edu.uc.lp3.domain.TipoEntidad;
+import py.edu.uc.lp3.domain.Vector3D;
+import py.edu.uc.lp3.domain.Zombie;
 
 @RestController
 public class ComportamientoController {

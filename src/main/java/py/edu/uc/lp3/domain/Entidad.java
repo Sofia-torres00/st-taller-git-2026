@@ -1,4 +1,4 @@
-package py.edu.uc.lp3.minecraft;
+package py.edu.uc.lp3.domain;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -40,6 +40,10 @@ public abstract class Entidad {
 
     public final void mover(Vector3D nuevaUbicacion) {
         ubicacion = Objects.requireNonNull(nuevaUbicacion, "La ubicación no puede ser nula");
+    }
+
+    public final void mover(double x, double y, double z) {
+        mover(new Vector3D(x, y, z));
     }
 
     protected double limiteSalud() {
