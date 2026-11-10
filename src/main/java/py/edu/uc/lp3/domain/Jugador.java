@@ -53,6 +53,9 @@ public class Jugador extends SerVivo {
         if (cantidad < 0) {
             throw new IllegalArgumentException("La experiencia no puede ser negativa");
         }
+        if (cantidad > Integer.MAX_VALUE - nivelExperiencia) {
+            throw new IllegalArgumentException("La experiencia no puede superar " + Integer.MAX_VALUE);
+        }
         nivelExperiencia += cantidad;
     }
 

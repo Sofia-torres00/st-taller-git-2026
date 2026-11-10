@@ -42,7 +42,9 @@ public abstract class Animal extends Entidad {
     }
 
     protected void envejecer() {
-        edad++;
+        if (edad < Integer.MAX_VALUE) {
+            edad++;
+        }
         adulto = edad >= 20;
     }
 

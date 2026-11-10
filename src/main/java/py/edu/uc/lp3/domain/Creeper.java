@@ -6,6 +6,8 @@ import jakarta.persistence.Entity;
 @Entity
 @DiscriminatorValue("Creeper")
 public class Creeper extends MobHostil {
+    public static final double RADIO_EXPLOSION = 6;
+    public static final double DANIO_MAXIMO_EXPLOSION = 20;
     private int fuseTime;
     private boolean encendido;
 
@@ -28,6 +30,10 @@ public class Creeper extends MobHostil {
     }
 
     public void encender() {
+        validarPuedeExplotar();
+        if (fuseTime <= 0) {
+            throw new ExplosionInvalidaException("El creeper necesita una mecha activa para encenderse");
+        }
         encendido = true;
     }
 
@@ -39,6 +45,7 @@ public class Creeper extends MobHostil {
     }
 
     public void explotar() {
+        validarPuedeExplotar();
         Entidad objetivo = buscarObjetivo();
         if (objetivo != null) {
             objetivo.tomarDanio(20);
@@ -47,14 +54,25 @@ public class Creeper extends MobHostil {
     }
 
     public void finalizarExplosion() {
+        validarPuedeExplotar();
         tomarDanio(getSalud());
         encendido = false;
         fuseTime = 0;
     }
 
+    public void validarPuedeExplotar() {
+        if (!estaViva()) {
+            throw new ExplosionInvalidaException("Un creeper muerto no puede explotar");
+        }
+    }
+
     @Override
     public void tick() {
         super.tick();
+        if (!estaViva()) {
+            encendido = false;
+            return;
+        }
         if (encendido && --fuseTime == 0) {
             explotar();
         } else if (!encendido) {

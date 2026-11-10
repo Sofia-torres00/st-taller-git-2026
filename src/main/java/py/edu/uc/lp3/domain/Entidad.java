@@ -48,6 +48,16 @@ public abstract class Entidad {
         salud = Math.max(0, salud - cantidad);
     }
 
+    /** Regla de daño radial compartida por Jugador, Cerdo y las demás entidades. */
+    public void recibirExplosion(Creeper origen) {
+        Objects.requireNonNull(origen, "El origen no puede ser nulo");
+        origen.validarPuedeExplotar();
+        double distancia = ubicacion.distanciaA(origen.obtenerPosicion());
+        if (estaViva() && distancia < Creeper.RADIO_EXPLOSION) {
+            tomarDanio(Creeper.DANIO_MAXIMO_EXPLOSION * (1 - distancia / Creeper.RADIO_EXPLOSION));
+        }
+    }
+
     public void curar(double cantidad) {
         validarCantidad(cantidad, "La curación");
         if (estaViva()) {
@@ -96,10 +106,14 @@ public abstract class Entidad {
 
     private static String validarNombre(String nombre) {
         Objects.requireNonNull(nombre, "El nombre no puede ser nulo");
-        if (nombre.isBlank()) {
+        String normalizado = nombre.strip();
+        if (normalizado.isEmpty()) {
             throw new IllegalArgumentException("El nombre no puede estar vacío");
         }
-        return nombre;
+        if (normalizado.length() > 100) {
+            throw new IllegalArgumentException("El nombre no puede superar los 100 caracteres");
+        }
+        return normalizado;
     }
 
     public UUID getId() {

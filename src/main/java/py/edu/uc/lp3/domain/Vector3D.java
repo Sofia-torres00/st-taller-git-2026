@@ -40,6 +40,11 @@ public class Vector3D {
         return new Vector3D(x + desplazamiento.x, y + desplazamiento.y, z + desplazamiento.z);
     }
 
+    public double distanciaA(Vector3D destino) {
+        Objects.requireNonNull(destino, "El destino no puede ser nulo");
+        return Math.hypot(Math.hypot(x - destino.x, y - destino.y), z - destino.z);
+    }
+
     public Vector3D acercarseA(Vector3D destino, double distancia) {
         Objects.requireNonNull(destino, "El destino no puede ser nulo");
         if (!Double.isFinite(distancia) || distancia < 0) {
