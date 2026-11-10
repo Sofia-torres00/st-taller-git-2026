@@ -1,9 +1,15 @@
 package py.edu.uc.lp3.domain;
 
+import jakarta.persistence.Entity;
+
+@Entity
 public abstract class SerVivo extends Entidad {
-    private final double saludMaxima;
+    private double saludMaxima;
     private boolean envenenado;
-    private final double regeneracion;
+    private double regeneracion;
+
+    protected SerVivo() {
+    }
 
     protected SerVivo(String nombre, TipoEntidad tipo, double salud, Vector3D ubicacion,
             double saludMaxima, double regeneracion) {
@@ -12,15 +18,15 @@ public abstract class SerVivo extends Entidad {
         this.regeneracion = validarCantidad(regeneracion, "La regeneración");
     }
 
-    public final void envenenar() {
+    public void envenenar() {
         envenenado = true;
     }
 
-    public final void curarVeneno() {
+    public void curarVeneno() {
         envenenado = false;
     }
 
-    protected final void actualizarEstadoVital() {
+    protected void actualizarEstadoVital() {
         if (envenenado) {
             tomarDanio(1);
         } else {
@@ -29,19 +35,19 @@ public abstract class SerVivo extends Entidad {
     }
 
     @Override
-    protected final double limiteSalud() {
+    protected double limiteSalud() {
         return saludMaxima;
     }
 
-    public final double getSaludMaxima() {
+    public double getSaludMaxima() {
         return saludMaxima;
     }
 
-    public final boolean isEnvenenado() {
+    public boolean isEnvenenado() {
         return envenenado;
     }
 
-    public final double getRegeneracion() {
+    public double getRegeneracion() {
         return regeneracion;
     }
 

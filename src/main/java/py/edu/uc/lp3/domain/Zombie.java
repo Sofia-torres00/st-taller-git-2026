@@ -1,8 +1,20 @@
 package py.edu.uc.lp3.domain;
 
-public final class Zombie extends MobHostil {
-    private final double velocidad;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
+
+@Entity
+@DiscriminatorValue("Zombie")
+public class Zombie extends MobHostil implements UICapable {
+    private double velocidad;
     private boolean quemandose;
+
+    protected Zombie() {
+    }
+
+    public void actualizarVelocidad(double velocidad) {
+        this.velocidad = validarCantidad(velocidad, "La velocidad");
+    }
 
     public Zombie(String nombre, Vector3D ubicacion) {
         this(nombre, ubicacion, 1.5);
@@ -38,6 +50,11 @@ public final class Zombie extends MobHostil {
     @Override
     public String describirComportamiento() {
         return "El zombie persigue a su objetivo y ataca cuerpo a cuerpo.";
+    }
+
+    @Override
+    public String emitirSonido() {
+        return "Grrr...";
     }
 
     public double getVelocidad() {

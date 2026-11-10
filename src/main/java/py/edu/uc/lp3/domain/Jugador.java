@@ -2,16 +2,28 @@ package py.edu.uc.lp3.domain;
 
 import java.util.Objects;
 
-public final class Jugador extends SerVivo {
-    private final String nombreJugador;
-    private final Inventario inventario;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+
+@Entity
+@DiscriminatorValue("Jugador")
+public class Jugador extends SerVivo {
+    @Embedded
+    private Inventario inventario;
     private int nivelExperiencia;
-    private final boolean modoCreativo;
+    private boolean modoCreativo;
+
+    protected Jugador() {
+    }
+
+    public void actualizarModoCreativo(boolean modoCreativo) {
+        this.modoCreativo = modoCreativo;
+    }
 
     public Jugador(String nombreJugador, Vector3D ubicacion, int capacidadInventario,
             boolean modoCreativo) {
         super(nombreJugador, TipoEntidad.JUGADOR, 20, ubicacion, 20, 0.5);
-        this.nombreJugador = nombreJugador;
         this.inventario = new Inventario(capacidadInventario);
         this.modoCreativo = modoCreativo;
     }
@@ -55,7 +67,7 @@ public final class Jugador extends SerVivo {
     }
 
     public String getNombreJugador() {
-        return nombreJugador;
+        return getNombre();
     }
 
     public int getNivelExperiencia() {

@@ -2,10 +2,20 @@ package py.edu.uc.lp3.domain;
 
 import java.util.Objects;
 
-public final class Vector3D {
-    private final double x;
-    private final double y;
-    private final double z;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
+
+@Embeddable
+public class Vector3D {
+    @Column(nullable = false)
+    private double x;
+    @Column(nullable = false)
+    private double y;
+    @Column(nullable = false)
+    private double z;
+
+    protected Vector3D() {
+    }
 
     public Vector3D(double x, double y, double z) {
         this.x = validarCoordenada(x, "x");

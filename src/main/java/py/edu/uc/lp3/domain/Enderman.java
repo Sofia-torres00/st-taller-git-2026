@@ -1,7 +1,19 @@
 package py.edu.uc.lp3.domain;
 
-public final class Enderman extends MobHostil {
-    private final boolean puedeTomarBloques;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
+
+@Entity
+@DiscriminatorValue("Enderman")
+public class Enderman extends MobHostil {
+    private boolean puedeTomarBloques;
+
+    protected Enderman() {
+    }
+
+    public void actualizarPuedeTomarBloques(boolean puedeTomarBloques) {
+        this.puedeTomarBloques = puedeTomarBloques;
+    }
 
     public Enderman(String nombre, Vector3D ubicacion, boolean puedeTomarBloques) {
         super(nombre, TipoEntidad.ENDERMAN, 40, ubicacion, 40, 0, 7, 64);

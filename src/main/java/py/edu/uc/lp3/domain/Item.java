@@ -2,9 +2,18 @@ package py.edu.uc.lp3.domain;
 
 import java.util.Objects;
 
-public final class Item {
-    private final String id;
-    private final String nombre;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
+
+@Embeddable
+public class Item {
+    @Column(name = "item_id", nullable = false)
+    private String id;
+    @Column(name = "item_nombre", nullable = false)
+    private String nombre;
+
+    protected Item() {
+    }
 
     public Item(String id, String nombre) {
         this.id = validarTexto(id, "id");
