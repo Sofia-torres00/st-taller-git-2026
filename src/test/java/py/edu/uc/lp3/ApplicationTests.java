@@ -32,6 +32,17 @@ class ApplicationTests {
     }
 
     @Test
+    void interfaceDeSonidoRespondeParaHostilYAnimal() throws Exception {
+        mockMvc.perform(get("/api/sonidos"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.resultados.length()").value(2))
+                .andExpect(jsonPath("$.resultados[0].tipo").value("Zombie"))
+                .andExpect(jsonPath("$.resultados[0].mensaje").value("Grrr..."))
+                .andExpect(jsonPath("$.resultados[1].tipo").value("Cerdo"))
+                .andExpect(jsonPath("$.resultados[1].mensaje").value("Oink, oink!"));
+    }
+
+    @Test
     void construyeZombieConParametrosValidos() throws Exception {
         mockMvc.perform(get("/api/zombie")
                 .param("nombre", "Zombie1").param("x", "0").param("y", "64")

@@ -19,9 +19,6 @@ import py.edu.uc.lp3.persistence.repository.EntidadRepository;
 
 @Service
 public class ExplosionService {
-    private static final double RADIO = 6;
-    private static final double DANIO_MAXIMO = 20;
-
     private final EntidadRepository repository;
 
     public ExplosionService(EntidadRepository repository) {
@@ -44,16 +41,14 @@ public class ExplosionService {
         Creeper creeper = buscar(entidades, solicitud.creeperId(), Creeper.class);
         Jugador jugador = buscar(entidades, solicitud.jugadorId(), Jugador.class);
         Cerdo cerdo = buscar(entidades, solicitud.cerdoId(), Cerdo.class);
-        if (!creeper.estaViva()) {
-            throw new IllegalStateException("Un creeper muerto no puede explotar");
-        }
+        creeper.validarPuedeExplotar();
 
         Vector3D centro = creeper.obtenerPosicion();
-        List<Resultado> resultados = List.of(aplicarDanio(centro, jugador), aplicarDanio(centro, cerdo));
+        List<Resultado> resultados = List.of(aplicarDanio(creeper, jugador), aplicarDanio(creeper, cerdo));
         creeper.finalizarExplosion();
 
         // JPA confirma los cambios de los tres participantes juntos.
-        return new ExplosionResponse(creeper.getId(), centro, RADIO, DANIO_MAXIMO,
+        return new ExplosionResponse(creeper.getId(), centro, Creeper.RADIO_EXPLOSION, Creeper.DANIO_MAXIMO_EXPLOSION,
                 creeper.getSalud(), resultados);
     }
 
@@ -66,15 +61,10 @@ public class ExplosionService {
         return clase.cast(entidad);
     }
 
-    private Resultado aplicarDanio(Vector3D centro, Entidad entidad) {
-        Vector3D posicion = entidad.obtenerPosicion();
-        double distancia = Math.hypot(Math.hypot(centro.getX() - posicion.getX(),
-                centro.getY() - posicion.getY()), centro.getZ() - posicion.getZ());
+    private Resultado aplicarDanio(Creeper creeper, Entidad entidad) {
+        double distancia = entidad.obtenerPosicion().distanciaA(creeper.obtenerPosicion());
         double saludAnterior = entidad.getSalud();
-        if (entidad.estaViva() && distancia < RADIO) {
-            double danio = DANIO_MAXIMO * (1 - distancia / RADIO);
-            entidad.tomarDanio(danio);
-        }
+        entidad.recibirExplosion(creeper);
         return new Resultado(entidad.getId(), entidad.getNombre(), entidad.getTipo(), distancia,
                 saludAnterior - entidad.getSalud(), saludAnterior, entidad.getSalud(), entidad.estaViva());
     }

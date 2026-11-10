@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -31,12 +32,15 @@ import org.springframework.transaction.support.TransactionTemplate;
 import py.edu.uc.lp3.domain.Cerdo;
 import py.edu.uc.lp3.domain.Creeper;
 import py.edu.uc.lp3.domain.Entidad;
+import py.edu.uc.lp3.domain.EntidadException;
+import py.edu.uc.lp3.domain.ExplosionInvalidaException;
 import py.edu.uc.lp3.domain.Jugador;
 import py.edu.uc.lp3.domain.Vector3D;
 import py.edu.uc.lp3.domain.Zombie;
 import py.edu.uc.lp3.dto.ExplosionRequest;
 import py.edu.uc.lp3.persistence.repository.EntidadRepository;
 import py.edu.uc.lp3.service.ExplosionService;
+import py.edu.uc.lp3.service.EntidadNoEncontradaException;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -73,6 +77,14 @@ class ExplosionServiceRestTests {
         assertEquals(0, leido.getSalud());
         assertEquals(0, leido.getFuseTime());
         assertFalse(leido.isEncendido());
+        mockMvc.perform(get("/api/entidades/" + p.creeper().getId()))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.salud").value(0))
+                .andExpect(jsonPath("$.atributos.fuseTime").value(0))
+                .andExpect(jsonPath("$.atributos.encendido").value(false));
+        mockMvc.perform(get("/api/entidades/" + p.jugador().getId()))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.salud").value(5));
+        mockMvc.perform(get("/api/entidades/" + p.cerdo().getId()))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.salud").value(0));
     }
 
     @ParameterizedTest
@@ -141,8 +153,42 @@ class ExplosionServiceRestTests {
         mockMvc.perform(post(RUTA).contentType(MediaType.APPLICATION_JSON).content(cuerpo))
                 .andExpect(status().isOk());
         mockMvc.perform(post(RUTA).contentType(MediaType.APPLICATION_JSON).content(cuerpo))
-                .andExpect(status().isConflict()).andExpect(jsonPath("$.error").isString());
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.codigo").value("EXPLOSION_INVALIDA"))
+                .andExpect(jsonPath("$.error").isString());
         assertEquals(10, salud(p.jugador()));
+    }
+
+    @Test
+    void dominioSostieneAmbasReglasSinServiceNiHttp() {
+        var creeper = new Creeper("Origen", new Vector3D(0, 64, 0), 30);
+        var jugador = new Jugador("Jugador", new Vector3D(1.5, 64, 0), 36, false);
+        var cerdo = new Cerdo("Cerdo", new Vector3D(3, 64, 0), false, 0);
+        creeper.encender();
+        jugador.recibirExplosion(creeper);
+        cerdo.recibirExplosion(creeper);
+        creeper.finalizarExplosion();
+        assertEquals(5, jugador.getSalud());
+        assertEquals(0, cerdo.getSalud());
+        assertEquals(0, creeper.getSalud());
+        assertEquals(0, creeper.getFuseTime());
+        assertFalse(creeper.isEncendido());
+        assertThrows(ExplosionInvalidaException.class, creeper::finalizarExplosion);
+        assertThrows(ExplosionInvalidaException.class, () -> jugador.recibirExplosion(creeper));
+        assertEquals(5, jugador.getSalud());
+    }
+
+    @Test
+    void servicioLanzaHijasDeLaMismaJerarquiaAntesDeModificarDatos() {
+        var p = participantes(0, 0);
+        EntidadException inexistente = assertThrows(EntidadNoEncontradaException.class,
+                () -> service.simular(new ExplosionRequest(p.creeper().getId(),
+                        p.jugador().getId(), UUID.randomUUID())));
+        assertEquals(20, salud(p.creeper()));
+        service.simular(p.solicitud());
+        EntidadException explosion = assertThrows(ExplosionInvalidaException.class,
+                () -> service.simular(p.solicitud()));
+        org.junit.jupiter.api.Assertions.assertNotEquals(inexistente.getClass(), explosion.getClass());
     }
 
     @Test

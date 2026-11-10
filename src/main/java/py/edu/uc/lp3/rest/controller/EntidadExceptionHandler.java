@@ -10,31 +10,35 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import py.edu.uc.lp3.service.EntidadNoEncontradaException;
+import py.edu.uc.lp3.domain.ExplosionInvalidaException;
 
 @RestControllerAdvice(assignableTypes = {EntidadController.class, ExplosionController.class})
 public class EntidadExceptionHandler {
-    @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<Map<String, String>> estadoInvalido(IllegalStateException exception) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", exception.getMessage()));
+    @ExceptionHandler(ExplosionInvalidaException.class)
+    public ResponseEntity<Map<String, String>> explosionInvalida(ExplosionInvalidaException exception) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of(
+                "codigo", "EXPLOSION_INVALIDA", "error", exception.getMessage()));
     }
 
     @ExceptionHandler(EntidadNoEncontradaException.class)
     public ResponseEntity<Map<String, String>> noEncontrada(EntidadNoEncontradaException exception) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", exception.getMessage()));
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of(
+                "codigo", "ENTIDAD_NO_ENCONTRADA", "error", exception.getMessage()));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, String>> datosInvalidos(IllegalArgumentException exception) {
-        return ResponseEntity.badRequest().body(Map.of("error", exception.getMessage()));
+        return ResponseEntity.badRequest().body(Map.of("codigo", "DATOS_INVALIDOS", "error", exception.getMessage()));
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<Map<String, String>> jsonInvalido() {
-        return ResponseEntity.badRequest().body(Map.of("error", "JSON inválido: revise los campos y el tipo de entidad"));
+        return ResponseEntity.badRequest().body(Map.of("codigo", "JSON_INVALIDO",
+                "error", "JSON inválido: revise los campos y el tipo de entidad"));
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<Map<String, String>> identificadorInvalido() {
-        return ResponseEntity.badRequest().body(Map.of("error", "El id debe ser un UUID válido"));
+        return ResponseEntity.badRequest().body(Map.of("codigo", "ID_INVALIDO", "error", "El id debe ser un UUID válido"));
     }
 }

@@ -68,6 +68,9 @@ class EntidadCrudTests {
                 .andExpect(jsonPath("$.nombre").value("Zombie2"))
                 .andExpect(jsonPath("$.salud").value(0));
         assertEquals("Zombie2", repository.findById(UUID.fromString(id)).orElseThrow().getNombre());
+        mockMvc.perform(get("/api/entidades/" + id))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.nombre").value("Zombie2"))
+                .andExpect(jsonPath("$.salud").value(0));
 
         mockMvc.perform(delete("/api/entidades/" + id)).andExpect(status().isNoContent());
         assertFalse(repository.existsById(UUID.fromString(id)));
@@ -106,7 +109,9 @@ class EntidadCrudTests {
     @Test
     void operacionesSobreIdInexistenteDevuelven404() throws Exception {
         String ruta = "/api/entidades/" + UUID.randomUUID();
-        mockMvc.perform(get(ruta)).andExpect(status().isNotFound()).andExpect(jsonPath("$.error").isString());
+        mockMvc.perform(get(ruta)).andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.codigo").value("ENTIDAD_NO_ENCONTRADA"))
+                .andExpect(jsonPath("$.error").isString());
         mockMvc.perform(put(ruta).contentType(MediaType.APPLICATION_JSON).content(DATOS))
                 .andExpect(status().isNotFound());
         mockMvc.perform(delete(ruta)).andExpect(status().isNotFound());
@@ -185,6 +190,8 @@ class EntidadCrudTests {
         mockMvc.perform(post("/api/entidades").contentType(MediaType.APPLICATION_JSON).content(datos))
                 .andExpect(status().isBadRequest()).andExpect(jsonPath("$.error").isString());
         assertEquals(0, repository.count());
+        mockMvc.perform(get("/api/entidades")).andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
     }
 
     @Test
