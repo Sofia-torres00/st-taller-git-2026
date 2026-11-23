@@ -2,10 +2,19 @@ package py.edu.uc.lp3.domain;
 
 import java.util.Objects;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ManyToOne;
+
+@Entity
 public abstract class MobHostil extends SerVivo {
-    private final double fuerzaAtaque;
-    private final double alcanceVision;
+    private double fuerzaAtaque;
+    private double alcanceVision;
+    @ManyToOne(fetch = FetchType.LAZY)
     private Entidad objetivoActual;
+
+    protected MobHostil() {
+    }
 
     protected MobHostil(String nombre, TipoEntidad tipo, double salud, Vector3D ubicacion,
             double saludMaxima, double regeneracion, double fuerzaAtaque, double alcanceVision) {
@@ -16,17 +25,21 @@ public abstract class MobHostil extends SerVivo {
 
     public void atacarObjetivo(Entidad objetivo) {
         fijarObjetivo(objetivo);
-        objetivo.tomarDanio(fuerzaAtaque);
+        objetivo.tomarDanio(calcularDanioAtaque());
     }
 
-    public final Entidad buscarObjetivo() {
+    public double calcularDanioAtaque() {
+        return fuerzaAtaque;
+    }
+
+    public Entidad buscarObjetivo() {
         if (objetivoActual != null && !objetivoActual.estaViva()) {
             objetivoActual = null;
         }
         return objetivoActual;
     }
 
-    protected final void fijarObjetivo(Entidad objetivo) {
+    protected void fijarObjetivo(Entidad objetivo) {
         Objects.requireNonNull(objetivo, "El objetivo no puede ser nulo");
         if (objetivo == this) {
             throw new IllegalArgumentException("Una entidad no puede atacarse a sí misma");
@@ -39,11 +52,11 @@ public abstract class MobHostil extends SerVivo {
         actualizarEstadoVital();
     }
 
-    public final double getFuerzaAtaque() {
+    public double getFuerzaAtaque() {
         return fuerzaAtaque;
     }
 
-    public final double getAlcanceVision() {
+    public double getAlcanceVision() {
         return alcanceVision;
     }
 }

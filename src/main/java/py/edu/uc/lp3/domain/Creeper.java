@@ -1,8 +1,23 @@
 package py.edu.uc.lp3.domain;
 
-public final class Creeper extends MobHostil {
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
+
+@Entity
+@DiscriminatorValue("Creeper")
+public class Creeper extends MobHostil {
     private int fuseTime;
     private boolean encendido;
+
+    protected Creeper() {
+    }
+
+    public void actualizarTiempoExplosion(int fuseTime) {
+        if (fuseTime <= 0) {
+            throw new IllegalArgumentException("El tiempo de explosión debe ser mayor que cero");
+        }
+        this.fuseTime = fuseTime;
+    }
 
     public Creeper(String nombre, Vector3D ubicacion, int fuseTime) {
         super(nombre, TipoEntidad.CREEPER, 20, ubicacion, 20, 0, 0, 20);
@@ -28,8 +43,13 @@ public final class Creeper extends MobHostil {
         if (objetivo != null) {
             objetivo.tomarDanio(20);
         }
+        finalizarExplosion();
+    }
+
+    public void finalizarExplosion() {
         tomarDanio(getSalud());
         encendido = false;
+        fuseTime = 0;
     }
 
     @Override

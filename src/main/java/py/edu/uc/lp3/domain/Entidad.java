@@ -3,12 +3,37 @@ package py.edu.uc.lp3.domain;
 import java.util.Objects;
 import java.util.UUID;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.DiscriminatorColumn;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.Inheritance;
+import jakarta.persistence.InheritanceType;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "entidades")
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "dtype")
 public abstract class Entidad {
-    private final UUID id;
-    private final String nombre;
-    private final TipoEntidad tipo;
+    @Id
+    private UUID id;
+    @Column(nullable = false, length = 100)
+    private String nombre;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TipoEntidad tipo;
+    @Column(nullable = false)
     private double salud;
+    @Embedded
     private Vector3D ubicacion;
+
+    protected Entidad() {
+        // JPA restaura los campos directamente, sin setters públicos.
+    }
 
     protected Entidad(String nombre, TipoEntidad tipo, double salud, Vector3D ubicacion) {
         this.id = UUID.randomUUID();
@@ -18,32 +43,44 @@ public abstract class Entidad {
         this.ubicacion = Objects.requireNonNull(ubicacion, "La ubicación no puede ser nula");
     }
 
-    public final void tomarDanio(double cantidad) {
+    public void tomarDanio(double cantidad) {
         validarCantidad(cantidad, "El daño");
         salud = Math.max(0, salud - cantidad);
     }
 
-    public final void curar(double cantidad) {
+    public void curar(double cantidad) {
         validarCantidad(cantidad, "La curación");
         if (estaViva()) {
             salud = Math.min(salud + cantidad, limiteSalud());
         }
     }
 
-    public final boolean estaViva() {
+    public boolean estaViva() {
         return salud > 0;
     }
 
-    public final Vector3D obtenerPosicion() {
+    public Vector3D obtenerPosicion() {
         return ubicacion;
     }
 
-    public final void mover(Vector3D nuevaUbicacion) {
+    public void mover(Vector3D nuevaUbicacion) {
         ubicacion = Objects.requireNonNull(nuevaUbicacion, "La ubicación no puede ser nula");
     }
 
-    public final void mover(double x, double y, double z) {
+    public void mover(double x, double y, double z) {
         mover(new Vector3D(x, y, z));
+    }
+
+    public void actualizarDatos(String nombre, double salud, Vector3D ubicacion) {
+        String nuevoNombre = validarNombre(nombre);
+        validarCantidad(salud, "La salud");
+        if (salud > limiteSalud()) {
+            throw new IllegalArgumentException("La salud no puede superar la salud máxima");
+        }
+        Objects.requireNonNull(ubicacion, "La ubicación no puede ser nula");
+        this.nombre = nuevoNombre;
+        this.salud = salud;
+        this.ubicacion = ubicacion;
     }
 
     protected double limiteSalud() {
@@ -65,19 +102,19 @@ public abstract class Entidad {
         return nombre;
     }
 
-    public final UUID getId() {
+    public UUID getId() {
         return id;
     }
 
-    public final String getNombre() {
+    public String getNombre() {
         return nombre;
     }
 
-    public final TipoEntidad getTipo() {
+    public TipoEntidad getTipo() {
         return tipo;
     }
 
-    public final double getSalud() {
+    public double getSalud() {
         return salud;
     }
 

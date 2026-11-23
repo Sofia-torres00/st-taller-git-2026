@@ -1,0 +1,72 @@
+-- Conserva los UUID y datos del CRUD anterior y completa los nuevos atributos.
+-- Se ejecuta antes de Hibernate y solo inicializa filas que aún no tengan DTYPE.
+CREATE TABLE IF NOT EXISTS entidades (
+    id UUID PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    tipo VARCHAR(255) NOT NULL,
+    salud DOUBLE PRECISION NOT NULL,
+    x DOUBLE PRECISION NOT NULL,
+    y DOUBLE PRECISION NOT NULL,
+    z DOUBLE PRECISION NOT NULL
+);
+
+ALTER TABLE entidades ADD COLUMN IF NOT EXISTS dtype VARCHAR(31);
+ALTER TABLE entidades ADD COLUMN IF NOT EXISTS salud_maxima DOUBLE PRECISION;
+ALTER TABLE entidades ADD COLUMN IF NOT EXISTS envenenado BOOLEAN;
+ALTER TABLE entidades ADD COLUMN IF NOT EXISTS regeneracion DOUBLE PRECISION;
+ALTER TABLE entidades ADD COLUMN IF NOT EXISTS fuerza_ataque DOUBLE PRECISION;
+ALTER TABLE entidades ADD COLUMN IF NOT EXISTS alcance_vision DOUBLE PRECISION;
+ALTER TABLE entidades ADD COLUMN IF NOT EXISTS objetivo_actual_id UUID;
+ALTER TABLE entidades ADD COLUMN IF NOT EXISTS domesticable BOOLEAN;
+ALTER TABLE entidades ADD COLUMN IF NOT EXISTS edad INTEGER;
+ALTER TABLE entidades ADD COLUMN IF NOT EXISTS adulto BOOLEAN;
+ALTER TABLE entidades ADD COLUMN IF NOT EXISTS puede_comerciar BOOLEAN;
+ALTER TABLE entidades ADD COLUMN IF NOT EXISTS velocidad DOUBLE PRECISION;
+ALTER TABLE entidades ADD COLUMN IF NOT EXISTS quemandose BOOLEAN;
+ALTER TABLE entidades ADD COLUMN IF NOT EXISTS fuse_time INTEGER;
+ALTER TABLE entidades ADD COLUMN IF NOT EXISTS encendido BOOLEAN;
+ALTER TABLE entidades ADD COLUMN IF NOT EXISTS tiene_arco BOOLEAN;
+ALTER TABLE entidades ADD COLUMN IF NOT EXISTS puede_tomar_bloques BOOLEAN;
+ALTER TABLE entidades ADD COLUMN IF NOT EXISTS montable BOOLEAN;
+ALTER TABLE entidades ADD COLUMN IF NOT EXISTS profesion VARCHAR(255);
+ALTER TABLE entidades ADD COLUMN IF NOT EXISTS nivel_comercio INTEGER;
+ALTER TABLE entidades ADD COLUMN IF NOT EXISTS capacidad_inventario INTEGER;
+ALTER TABLE entidades ADD COLUMN IF NOT EXISTS nivel_experiencia INTEGER;
+ALTER TABLE entidades ADD COLUMN IF NOT EXISTS modo_creativo BOOLEAN;
+
+UPDATE entidades SET
+    salud_maxima = CASE
+        WHEN tipo = 'ENDERMAN' THEN GREATEST(40, salud)
+        WHEN tipo IN ('JUGADOR', 'ZOMBIE', 'ESQUELETO', 'CREEPER') THEN GREATEST(20, salud)
+        ELSE NULL END,
+    envenenado = CASE WHEN tipo IN ('JUGADOR', 'ZOMBIE', 'ESQUELETO', 'CREEPER', 'ENDERMAN')
+        THEN FALSE ELSE NULL END,
+    regeneracion = CASE WHEN tipo = 'JUGADOR' THEN 0.5
+        WHEN tipo IN ('ZOMBIE', 'ESQUELETO', 'CREEPER', 'ENDERMAN') THEN 0 ELSE NULL END,
+    fuerza_ataque = CASE tipo WHEN 'ZOMBIE' THEN 3 WHEN 'ESQUELETO' THEN 2
+        WHEN 'CREEPER' THEN 0 WHEN 'ENDERMAN' THEN 7 ELSE NULL END,
+    alcance_vision = CASE tipo WHEN 'ZOMBIE' THEN 35 WHEN 'ESQUELETO' THEN 40
+        WHEN 'CREEPER' THEN 20 WHEN 'ENDERMAN' THEN 64 ELSE NULL END,
+    domesticable = CASE WHEN tipo = 'CERDO' THEN TRUE ELSE NULL END,
+    edad = CASE WHEN tipo = 'CERDO' THEN 0 ELSE NULL END,
+    adulto = CASE WHEN tipo = 'CERDO' THEN FALSE ELSE NULL END,
+    puede_comerciar = CASE WHEN tipo = 'ALDEANO' THEN TRUE ELSE NULL END,
+    velocidad = CASE WHEN tipo = 'ZOMBIE' THEN 1.5 ELSE NULL END,
+    quemandose = CASE WHEN tipo = 'ZOMBIE' THEN FALSE ELSE NULL END,
+    fuse_time = CASE WHEN tipo = 'CREEPER' THEN 30 ELSE NULL END,
+    encendido = CASE WHEN tipo = 'CREEPER' THEN FALSE ELSE NULL END,
+    tiene_arco = CASE WHEN tipo = 'ESQUELETO' THEN TRUE ELSE NULL END,
+    puede_tomar_bloques = CASE WHEN tipo = 'ENDERMAN' THEN TRUE ELSE NULL END,
+    montable = CASE WHEN tipo = 'CERDO' THEN FALSE ELSE NULL END,
+    profesion = CASE WHEN tipo = 'ALDEANO' THEN 'Granjero' ELSE NULL END,
+    nivel_comercio = CASE WHEN tipo = 'ALDEANO' THEN 1 ELSE NULL END,
+    capacidad_inventario = CASE WHEN tipo = 'JUGADOR' THEN 36 ELSE NULL END,
+    nivel_experiencia = CASE WHEN tipo = 'JUGADOR' THEN 0 ELSE NULL END,
+    modo_creativo = CASE WHEN tipo = 'JUGADOR' THEN FALSE ELSE NULL END,
+    dtype = CASE tipo WHEN 'ZOMBIE' THEN 'Zombie' WHEN 'CREEPER' THEN 'Creeper'
+        WHEN 'ESQUELETO' THEN 'Esqueleto' WHEN 'ENDERMAN' THEN 'Enderman'
+        WHEN 'CERDO' THEN 'Cerdo' WHEN 'ALDEANO' THEN 'Aldeano'
+        WHEN 'JUGADOR' THEN 'Jugador' ELSE 'OtraEntidad' END
+WHERE dtype IS NULL;
+
+ALTER TABLE entidades ALTER COLUMN dtype SET NOT NULL;

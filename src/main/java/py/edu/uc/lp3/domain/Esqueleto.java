@@ -1,7 +1,19 @@
 package py.edu.uc.lp3.domain;
 
-public final class Esqueleto extends MobHostil {
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
+
+@Entity
+@DiscriminatorValue("Esqueleto")
+public class Esqueleto extends MobHostil {
     private boolean tieneArco;
+
+    protected Esqueleto() {
+    }
+
+    public void actualizarArco(boolean tieneArco) {
+        this.tieneArco = tieneArco;
+    }
 
     public Esqueleto(String nombre, Vector3D ubicacion, boolean tieneArco) {
         super(nombre, TipoEntidad.ESQUELETO, 20, ubicacion, 20, 0, 2, 40);
@@ -14,15 +26,20 @@ public final class Esqueleto extends MobHostil {
         if (tieneArco) {
             dispararFlecha();
         } else {
-            objetivo.tomarDanio(getFuerzaAtaque());
+            objetivo.tomarDanio(calcularDanioAtaque());
         }
     }
 
     public void dispararFlecha() {
         Entidad objetivo = buscarObjetivo();
         if (tieneArco && objetivo != null) {
-            objetivo.tomarDanio(getFuerzaAtaque() + 2);
+            objetivo.tomarDanio(calcularDanioAtaque());
         }
+    }
+
+    @Override
+    public double calcularDanioAtaque() {
+        return getFuerzaAtaque() + (tieneArco ? 2 : 0);
     }
 
     public void perderArco() {

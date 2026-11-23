@@ -1,7 +1,20 @@
 package py.edu.uc.lp3.domain;
 
-public final class Cerdo extends Animal {
-    private final boolean montable;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
+
+@Entity
+@DiscriminatorValue("Cerdo")
+public class Cerdo extends Animal implements UICapable {
+    private boolean montable;
+
+    protected Cerdo() {
+    }
+
+    public void actualizarCaracteristicas(boolean montable, int edad) {
+        actualizarEdad(edad);
+        this.montable = montable;
+    }
 
     public Cerdo(String nombre, Vector3D ubicacion, boolean montable, int edad) {
         super(nombre, TipoEntidad.CERDO, 10, ubicacion, true, edad);
@@ -20,6 +33,11 @@ public final class Cerdo extends Animal {
     @Override
     public String describirComportamiento() {
         return "El cerdo busca alimento y puede ser montado.";
+    }
+
+    @Override
+    public String emitirSonido() {
+        return "Oink, oink!";
     }
 
     public boolean isMontable() {

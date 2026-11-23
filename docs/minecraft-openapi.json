@@ -1,0 +1,1363 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "API REST - Minecraft",
+    "description": "API Minecraft de Sofi: entidades, explosiones, combate temporal con Amir y demolicion coordinada con Nico y Amir. POST /api/demoliciones aplica dano real en Amir y registra en H2 solo las explosiones confirmadas.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://100.79.75.27:8081",
+      "description": "Sofi - red del trio"
+    },
+    {
+      "url": "http://localhost:8081",
+      "description": "Sofi - entorno local"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Entidades",
+      "description": "CRUD de entidades persistidas en H2"
+    },
+    {
+      "name": "Explosiones",
+      "description": "Simulacion transaccional de explosiones de creepers"
+    },
+    {
+      "name": "Comportamientos",
+      "description": "Ejemplos de comportamiento de las entidades"
+    },
+    {
+      "name": "Demoliciones coordinadas",
+      "description": "Sofi coordina la disponibilidad de Nico y la explosion de Amir"
+    },
+    {
+      "name": "Combates integrados",
+      "description": "Reglas de ataque locales combinadas con el Minecraft remoto"
+    },
+    {
+      "name": "Inicio",
+      "description": "Presentacion de la API"
+    },
+    {
+      "name": "Zombies",
+      "description": "Construccion de un zombie de ejemplo sin persistirlo"
+    },
+    {
+      "name": "Objetos externos",
+      "description": "Consulta de restful-api.dev mediante WebClient"
+    },
+    {
+      "name": "Sonidos",
+      "description": "Ejemplos de sonidos de las entidades"
+    }
+  ],
+  "paths": {
+    "/api/entidades/{id}": {
+      "get": {
+        "tags": [
+          "Entidades"
+        ],
+        "summary": "Obtener una entidad por su ID",
+        "operationId": "obtener",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "UUID de la entidad",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "11111111-1111-1111-1111-111111111111"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Entidad encontrada",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntidadResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/DatosInvalidos"
+          },
+          "404": {
+            "$ref": "#/components/responses/EntidadNoEncontrada"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Entidades"
+        ],
+        "summary": "Actualizar una entidad",
+        "description": "Reemplaza nombre, salud y ubicacion; actualiza los atributos informados. El tipo no puede cambiar.",
+        "operationId": "actualizar",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "UUID de la entidad",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "11111111-1111-1111-1111-111111111111"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EntidadRequest"
+              },
+              "example": {
+                "nombre": "Zombie1",
+                "tipo": "ZOMBIE",
+                "salud": 20,
+                "ubicacion": {
+                  "x": 0,
+                  "y": 64,
+                  "z": 0
+                },
+                "atributos": {
+                  "velocidad": 1.5
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Entidad actualizada",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntidadResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/DatosInvalidos"
+          },
+          "404": {
+            "$ref": "#/components/responses/EntidadNoEncontrada"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Entidades"
+        ],
+        "summary": "Eliminar una entidad",
+        "operationId": "eliminar",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "UUID de la entidad",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "11111111-1111-1111-1111-111111111111"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Entidad eliminada; sin cuerpo de respuesta"
+          },
+          "400": {
+            "$ref": "#/components/responses/DatosInvalidos"
+          },
+          "404": {
+            "$ref": "#/components/responses/EntidadNoEncontrada"
+          }
+        }
+      }
+    },
+    "/api/explosiones": {
+      "post": {
+        "tags": [
+          "Explosiones"
+        ],
+        "summary": "Simular una explosion",
+        "description": "Recibe los IDs distintos de un creeper vivo, un jugador y un cerdo. Aplica hasta 20 puntos de danio dentro de un radio de 6 bloques y consume la salud del creeper.",
+        "operationId": "simular",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExplosionRequest"
+              },
+              "example": {
+                "creeperId": "11111111-1111-4111-8111-111111111111",
+                "jugadorId": "22222222-2222-4222-8222-222222222222",
+                "cerdoId": "33333333-3333-4333-8333-333333333333"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Explosion realizada y cambios guardados",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExplosionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/DatosInvalidos"
+          },
+          "404": {
+            "$ref": "#/components/responses/EntidadNoEncontrada"
+          },
+          "409": {
+            "$ref": "#/components/responses/EstadoInvalido"
+          }
+        }
+      }
+    },
+    "/api/entidades": {
+      "get": {
+        "tags": [
+          "Entidades"
+        ],
+        "summary": "Listar entidades",
+        "description": "Devuelve todas las entidades guardadas y sus atributos.",
+        "operationId": "listar",
+        "responses": {
+          "200": {
+            "description": "Lista de entidades; puede estar vacia",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EntidadResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Entidades"
+        ],
+        "summary": "Crear una entidad",
+        "description": "Valida los datos y atributos segun el tipo y guarda la entidad.",
+        "operationId": "crear",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EntidadRequest"
+              },
+              "example": {
+                "nombre": "Zombie1",
+                "tipo": "ZOMBIE",
+                "salud": 20,
+                "ubicacion": {
+                  "x": 0,
+                  "y": 64,
+                  "z": 0
+                },
+                "atributos": {
+                  "velocidad": 1.5
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Entidad creada",
+            "headers": {
+              "Location": {
+                "description": "URL de la nueva entidad",
+                "style": "simple",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/EntidadResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/DatosInvalidos"
+          }
+        }
+      }
+    },
+    "/api/demoliciones": {
+      "get": {
+        "tags": [
+          "Demoliciones coordinadas"
+        ],
+        "summary": "Listar demoliciones confirmadas y guardadas por Sofi",
+        "operationId": "listar_1",
+        "responses": {
+          "200": {
+            "description": "Historial local; no consulta las APIs de Nico ni de Amir",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DemolicionResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Demoliciones coordinadas"
+        ],
+        "summary": "Ejecutar una demolicion coordinada con Nico y Amir",
+        "description": "Consulta GET /api/minecraft/explosivos/{id} de Nico. Solo con puedeExplotar=true envia POST /api/lp3/explosiones/simular a Amir con creeperId. Amir aplica dano real y elimina su Creeper. Sofi guarda en H2 solo las explosiones confirmadas. Los dos IDs identifican entidades independientes. No hay reintentos automaticos ni rollback remoto.",
+        "operationId": "ejecutar",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DemolicionRequest"
+              },
+              "example": {
+                "explosivoNicoId": "b26bb20b-a15f-43ed-b4a9-f2c19480516e",
+                "creeperAmirId": 25
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Explosion confirmada por Amir y registrada por Sofi",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemolicionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Solicitud invalida o rechazada por Amir"
+          },
+          "404": {
+            "description": "Explosivo de Nico o Creeper de Amir inexistente"
+          },
+          "409": {
+            "description": "Nico no autoriza el explosivo o Amir rechaza la explosion"
+          },
+          "502": {
+            "description": "Fallo HTTP, de conexion o de contrato remoto; verificar Amir antes de repetir"
+          },
+          "504": {
+            "description": "Tiempo de espera agotado; el resultado en Amir puede ser incierto"
+          },
+          "503": {
+            "description": "Amir confirmo la explosion pero fallo el registro en H2"
+          }
+        }
+      }
+    },
+    "/api/combates/integrados": {
+      "post": {
+        "tags": [
+          "Combates integrados"
+        ],
+        "summary": "Simular un combate entre proyectos",
+        "description": "Calcula el danio del atacante local y lo envia con WebClient a GET /entidad/{tipo}?danio=... del proyecto remoto. El otro proyecto construye una entidad temporal, ejecuta su comportamiento y evalua vida, muerte y drops. CREEPER puede explotar durante ese comportamiento. No modifica entidades persistidas de ninguno de los dos proyectos.",
+        "operationId": "simular_1",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CombateIntegradoRequest"
+              },
+              "example": {
+                "atacanteId": "11111111-1111-1111-1111-111111111111",
+                "tipoObjetivo": "ZOMBIE",
+                "golpes": 5
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Ataque local y resultado de las reglas remotas",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CombateIntegradoResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/DatosInvalidos"
+          },
+          "404": {
+            "$ref": "#/components/responses/EntidadNoEncontrada"
+          },
+          "409": {
+            "$ref": "#/components/responses/EstadoInvalido"
+          },
+          "502": {
+            "description": "Error HTTP, de conexion o de respuesta del servidor remoto"
+          },
+          "504": {
+            "description": "El servidor remoto supero el tiempo limite"
+          }
+        }
+      }
+    },
+    "/api/zombie": {
+      "get": {
+        "tags": [
+          "Zombies"
+        ],
+        "summary": "Construir un zombie con parametros de URL",
+        "description": "El nombre no puede estar vacio; las coordenadas deben ser finitas y la velocidad no negativa.",
+        "operationId": "crearZombie",
+        "parameters": [
+          {
+            "name": "nombre",
+            "in": "query",
+            "description": "Nombre del zombie",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "Zombie1"
+          },
+          {
+            "name": "x",
+            "in": "query",
+            "description": "Coordenada X",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            },
+            "example": 0
+          },
+          {
+            "name": "y",
+            "in": "query",
+            "description": "Coordenada Y",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            },
+            "example": 64
+          },
+          {
+            "name": "z",
+            "in": "query",
+            "description": "Coordenada Z",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            },
+            "example": 0
+          },
+          {
+            "name": "velocidad",
+            "in": "query",
+            "description": "Velocidad finita y no negativa",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minimum": 0
+            },
+            "example": 1.5
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Zombie construido; no se guarda en H2",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ZombieResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parametros ausentes, de tipo incorrecto o rechazados por el dominio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                },
+                "example": {
+                  "error": "La velocidad debe ser finita y no negativa"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sonidos": {
+      "get": {
+        "tags": [
+          "Sonidos"
+        ],
+        "summary": "Obtener los sonidos de un zombie y un cerdo",
+        "operationId": "obtenerSonidos",
+        "responses": {
+          "200": {
+            "description": "Sonidos de las dos entidades de ejemplo",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SonidosResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/objetos": {
+      "get": {
+        "tags": [
+          "Objetos externos"
+        ],
+        "summary": "Listar objetos de la API externa",
+        "description": "Consulta /objects sin persistir los resultados. El campo data tiene propiedades variables y puede ser nulo.",
+        "operationId": "listar_2",
+        "responses": {
+          "200": {
+            "description": "Lista de objetos externos",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ObjetoResponse"
+                  }
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Fallo de conexion o error HTTP de la API externa"
+          },
+          "504": {
+            "description": "La API externa supero el tiempo limite configurado"
+          }
+        }
+      }
+    },
+    "/api/demoliciones/{id}": {
+      "get": {
+        "tags": [
+          "Demoliciones coordinadas"
+        ],
+        "summary": "Consultar una demolicion guardada por su UUID local",
+        "operationId": "obtener_1",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Demolicion confirmada",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/DemolicionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/DatosInvalidos"
+          },
+          "404": {
+            "description": "Registro local inexistente"
+          }
+        }
+      }
+    },
+    "/api/comportamientos": {
+      "get": {
+        "tags": [
+          "Comportamientos"
+        ],
+        "summary": "Obtener los comportamientos de un zombie y un creeper",
+        "operationId": "obtenerComportamientos",
+        "responses": {
+          "200": {
+            "description": "Comportamientos de las dos entidades de ejemplo",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ComportamientosResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/": {
+      "get": {
+        "tags": [
+          "Inicio"
+        ],
+        "summary": "Consultar la presentacion de la API",
+        "operationId": "inicio",
+        "responses": {
+          "200": {
+            "description": "Mensaje de bienvenida",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "example": "API REST - Sofia Torres - Minecraft"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "Descripcion del error"
+          }
+        },
+        "required": [
+          "error"
+        ]
+      },
+      "Atributos": {
+        "type": "object",
+        "description": "ZOMBIE: velocidad; CREEPER: fuseTime; ESQUELETO: tieneArco; ENDERMAN: puedeTomarBloques; CERDO: montable y edad; ALDEANO: profesion y nivelComercio; JUGADOR: capacidadInventario y modoCreativo. OTRO no admite atributos especificos. La capacidad de un inventario existente no puede cambiar.",
+        "properties": {
+          "velocidad": {
+            "type": "number",
+            "format": "double"
+          },
+          "fuseTime": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tieneArco": {
+            "type": "boolean"
+          },
+          "puedeTomarBloques": {
+            "type": "boolean"
+          },
+          "montable": {
+            "type": "boolean"
+          },
+          "edad": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "profesion": {
+            "type": "string"
+          },
+          "nivelComercio": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "capacidadInventario": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "modoCreativo": {
+            "type": "boolean"
+          }
+        }
+      },
+      "EntidadRequest": {
+        "type": "object",
+        "description": "Datos para crear o actualizar una entidad. Los atributos permitidos dependen del tipo.",
+        "example": {
+          "nombre": "Zombie1",
+          "tipo": "ZOMBIE",
+          "salud": 20,
+          "ubicacion": {
+            "x": 0,
+            "y": 64,
+            "z": 0
+          },
+          "atributos": {
+            "velocidad": 1.5
+          }
+        },
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "description": "Nombre no vacio; se recortan los espacios de los extremos",
+            "maxLength": 100
+          },
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "JUGADOR",
+              "ZOMBIE",
+              "ESQUELETO",
+              "CREEPER",
+              "ENDERMAN",
+              "CERDO",
+              "ALDEANO",
+              "OTRO"
+            ]
+          },
+          "salud": {
+            "type": "number",
+            "format": "double",
+            "description": "Salud finita y no negativa",
+            "minimum": 0
+          },
+          "ubicacion": {
+            "$ref": "#/components/schemas/Ubicacion"
+          },
+          "atributos": {
+            "$ref": "#/components/schemas/Atributos",
+            "description": "Opcionales. Al actualizar, se conservan los atributos que no se informan."
+          }
+        },
+        "required": [
+          "nombre",
+          "salud",
+          "tipo",
+          "ubicacion"
+        ]
+      },
+      "Ubicacion": {
+        "type": "object",
+        "description": "Coordenadas finitas de la entidad",
+        "properties": {
+          "x": {
+            "type": "number",
+            "format": "double",
+            "example": 0
+          },
+          "y": {
+            "type": "number",
+            "format": "double",
+            "example": 64
+          },
+          "z": {
+            "type": "number",
+            "format": "double",
+            "example": 0
+          }
+        },
+        "required": [
+          "x",
+          "y",
+          "z"
+        ]
+      },
+      "EntidadResponse": {
+        "type": "object",
+        "description": "Entidad persistida con sus atributos segun el tipo",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "JUGADOR",
+              "ZOMBIE",
+              "ESQUELETO",
+              "CREEPER",
+              "ENDERMAN",
+              "CERDO",
+              "ALDEANO",
+              "OTRO"
+            ]
+          },
+          "salud": {
+            "type": "number",
+            "format": "double"
+          },
+          "ubicacion": {
+            "$ref": "#/components/schemas/Vector3D"
+          },
+          "atributos": {
+            "type": "object",
+            "additionalProperties": {}
+          }
+        }
+      },
+      "Vector3D": {
+        "type": "object",
+        "properties": {
+          "x": {
+            "type": "number",
+            "format": "double"
+          },
+          "y": {
+            "type": "number",
+            "format": "double"
+          },
+          "z": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "ExplosionRequest": {
+        "type": "object",
+        "description": "IDs de tres entidades existentes y distintas; cada ID debe corresponder al tipo indicado",
+        "properties": {
+          "creeperId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID de un creeper vivo",
+            "example": "11111111-1111-4111-8111-111111111111"
+          },
+          "jugadorId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID del jugador",
+            "example": "22222222-2222-4222-8222-222222222222"
+          },
+          "cerdoId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID del cerdo",
+            "example": "33333333-3333-4333-8333-333333333333"
+          }
+        },
+        "required": [
+          "cerdoId",
+          "creeperId",
+          "jugadorId"
+        ]
+      },
+      "ExplosionResponse": {
+        "type": "object",
+        "description": "Resultado de la explosion, salud final del creeper y danio aplicado a cada participante",
+        "properties": {
+          "creeperId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "centro": {
+            "$ref": "#/components/schemas/Vector3D"
+          },
+          "radio": {
+            "type": "number",
+            "format": "double"
+          },
+          "danioMaximo": {
+            "type": "number",
+            "format": "double"
+          },
+          "saludCreeper": {
+            "type": "number",
+            "format": "double"
+          },
+          "resultados": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Resultado"
+            }
+          }
+        }
+      },
+      "Resultado": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "JUGADOR",
+              "ZOMBIE",
+              "ESQUELETO",
+              "CREEPER",
+              "ENDERMAN",
+              "CERDO",
+              "ALDEANO",
+              "OTRO"
+            ]
+          },
+          "distancia": {
+            "type": "number",
+            "format": "double"
+          },
+          "danioAplicado": {
+            "type": "number",
+            "format": "double"
+          },
+          "saludAnterior": {
+            "type": "number",
+            "format": "double"
+          },
+          "saludActual": {
+            "type": "number",
+            "format": "double"
+          },
+          "viva": {
+            "type": "boolean"
+          }
+        }
+      },
+      "DemolicionRequest": {
+        "type": "object",
+        "description": "Identificadores independientes de un explosivo en Nico y un Creeper en Amir",
+        "properties": {
+          "explosivoNicoId": {
+            "type": "string",
+            "format": "uuid",
+            "example": "b26bb20b-a15f-43ed-b4a9-f2c19480516e"
+          },
+          "creeperAmirId": {
+            "type": "integer",
+            "format": "int64",
+            "example": 25,
+            "minimum": 1
+          }
+        },
+        "required": [
+          "creeperAmirId",
+          "explosivoNicoId"
+        ]
+      },
+      "CreeperExplosionAmir": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "cargado": {
+            "type": "boolean"
+          },
+          "vidaFinal": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "eliminado": {
+            "type": "boolean"
+          },
+          "mensaje": {
+            "type": "string"
+          }
+        }
+      },
+      "DemolicionResponse": {
+        "type": "object",
+        "description": "Demolicion confirmada por Amir y registrada en H2 por Sofi",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "explosivoNicoId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "creeperAmirId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "fecha": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "resultadoAmir": {
+            "$ref": "#/components/schemas/ExplosionAmirResponse"
+          }
+        }
+      },
+      "ExplosionAmirResponse": {
+        "type": "object",
+        "description": "Contrato ExplosionResultado de Amir, POST /api/lp3/explosiones/simular",
+        "properties": {
+          "radio": {
+            "type": "number",
+            "format": "double"
+          },
+          "creeper": {
+            "$ref": "#/components/schemas/CreeperExplosionAmir"
+          },
+          "objetivos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ObjetivoExplosionAmir"
+            }
+          }
+        }
+      },
+      "ObjetivoExplosionAmir": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "distancia": {
+            "type": "number",
+            "format": "double"
+          },
+          "vidaInicial": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "danoRecibido": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "vidaFinal": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "eliminado": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CombateIntegradoRequest": {
+        "type": "object",
+        "description": "Combina el ataque de un mob local con las reglas de una entidad temporal remota",
+        "example": {
+          "atacanteId": "11111111-1111-1111-1111-111111111111",
+          "tipoObjetivo": "ZOMBIE",
+          "golpes": 5
+        },
+        "properties": {
+          "atacanteId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID de un mob hostil local vivo"
+          },
+          "tipoObjetivo": {
+            "type": "string",
+            "description": "Tipo de entidad temporal que construira el servidor remoto",
+            "enum": [
+              "ZOMBIE",
+              "ESQUELETO",
+              "LOBO",
+              "OVEJA",
+              "ALDEANO",
+              "CREEPER"
+            ]
+          },
+          "golpes": {
+            "type": "integer",
+            "format": "int32",
+            "default": 1,
+            "description": "Cantidad de golpes del mismo atacante; por defecto 1",
+            "maximum": 100,
+            "minimum": 1
+          }
+        },
+        "required": [
+          "atacanteId",
+          "tipoObjetivo"
+        ]
+      },
+      "CombateIntegradoResponse": {
+        "type": "object",
+        "description": "Ataque calculado por el dominio local y resultado evaluado por el servidor remoto",
+        "properties": {
+          "atacanteId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "nombreAtacante": {
+            "type": "string"
+          },
+          "tipoAtacante": {
+            "type": "string",
+            "enum": [
+              "JUGADOR",
+              "ZOMBIE",
+              "ESQUELETO",
+              "CREEPER",
+              "ENDERMAN",
+              "CERDO",
+              "ALDEANO",
+              "OTRO"
+            ]
+          },
+          "danioPorGolpe": {
+            "type": "number",
+            "format": "double"
+          },
+          "golpes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "danioEnviado": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "objetivoRemoto": {
+            "$ref": "#/components/schemas/ObjetivoCombateRemoto"
+          }
+        }
+      },
+      "ObjetivoCombateRemoto": {
+        "type": "object",
+        "description": "Estado final de la entidad temporal del otro proyecto",
+        "properties": {
+          "nombre": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "ZOMBIE",
+              "ESQUELETO",
+              "LOBO",
+              "OVEJA",
+              "ALDEANO",
+              "CREEPER"
+            ]
+          },
+          "vidaFinal": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "viva": {
+            "type": "boolean"
+          },
+          "mensaje": {
+            "type": "string"
+          },
+          "objetosSoltados": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "ZombieResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "JUGADOR",
+              "ZOMBIE",
+              "ESQUELETO",
+              "CREEPER",
+              "ENDERMAN",
+              "CERDO",
+              "ALDEANO",
+              "OTRO"
+            ]
+          },
+          "salud": {
+            "type": "number",
+            "format": "double"
+          },
+          "velocidad": {
+            "type": "number",
+            "format": "double"
+          },
+          "viva": {
+            "type": "boolean"
+          },
+          "ubicacion": {
+            "$ref": "#/components/schemas/Vector3D"
+          },
+          "comportamiento": {
+            "type": "string"
+          }
+        }
+      },
+      "SonidoResponse": {
+        "type": "object",
+        "properties": {
+          "tipo": {
+            "type": "string"
+          },
+          "mensaje": {
+            "type": "string"
+          }
+        }
+      },
+      "SonidosResponse": {
+        "type": "object",
+        "properties": {
+          "resultados": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SonidoResponse"
+            }
+          }
+        }
+      },
+      "ObjetoResponse": {
+        "type": "object",
+        "description": "Objeto devuelto por restful-api.dev",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "1"
+          },
+          "name": {
+            "type": "string",
+            "example": "Google Pixel 6 Pro"
+          },
+          "data": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": {},
+            "description": "Propiedades variables del objeto; puede ser null",
+            "example": {
+              "color": "Cloudy White",
+              "capacity": "128 GB"
+            }
+          }
+        }
+      },
+      "ComportamientoEntidadResponse": {
+        "type": "object",
+        "description": "Comportamiento de una entidad de ejemplo",
+        "properties": {
+          "nombre": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "JUGADOR",
+              "ZOMBIE",
+              "ESQUELETO",
+              "CREEPER",
+              "ENDERMAN",
+              "CERDO",
+              "ALDEANO",
+              "OTRO"
+            ]
+          },
+          "comportamiento": {
+            "type": "string"
+          }
+        }
+      },
+      "ComportamientosResponse": {
+        "type": "object",
+        "properties": {
+          "entidades": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ComportamientoEntidadResponse"
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "DatosInvalidos": {
+        "description": "Parametros o cuerpo JSON invalidos",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "EntidadNoEncontrada": {
+        "description": "No existe una entidad con el identificador indicado",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "EstadoInvalido": {
+        "description": "El estado de la entidad impide realizar la operacion",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    }
+  },
+  "externalDocs": {
+    "description": "OpenAPI del proyecto de Amir",
+    "url": "http://100.78.121.31:8080/v3/api-docs"
+  }
+}

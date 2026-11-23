@@ -2,21 +2,32 @@ package py.edu.uc.lp3.domain;
 
 import java.util.Objects;
 
-public final class Aldeano extends Residente {
-    private final String profesion;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
+
+@Entity
+@DiscriminatorValue("Aldeano")
+public class Aldeano extends Residente {
+    private String profesion;
     private int nivelComercio;
 
-    public Aldeano(String nombre, Vector3D ubicacion, String profesion, int nivelComercio) {
-        super(nombre, TipoEntidad.ALDEANO, 20, ubicacion, true);
-        Objects.requireNonNull(profesion, "La profesión no puede ser nula");
-        if (profesion.isBlank()) {
-            throw new IllegalArgumentException("La profesión no puede estar vacía");
+    protected Aldeano() {
+    }
+
+    public void actualizarComercio(String profesion, int nivelComercio) {
+        if (profesion == null || profesion.isBlank() || profesion.length() > 255) {
+            throw new IllegalArgumentException("La profesión debe tener entre 1 y 255 caracteres");
         }
         if (nivelComercio < 1 || nivelComercio > 5) {
             throw new IllegalArgumentException("El nivel de comercio debe estar entre 1 y 5");
         }
         this.profesion = profesion;
         this.nivelComercio = nivelComercio;
+    }
+
+    public Aldeano(String nombre, Vector3D ubicacion, String profesion, int nivelComercio) {
+        super(nombre, TipoEntidad.ALDEANO, 20, ubicacion, true);
+        actualizarComercio(profesion, nivelComercio);
     }
 
     public void comerciar(Jugador jugador) {

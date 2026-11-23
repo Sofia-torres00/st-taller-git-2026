@@ -2,10 +2,24 @@ package py.edu.uc.lp3.domain;
 
 import java.util.Objects;
 
+import jakarta.persistence.Entity;
+
+@Entity
 public abstract class Animal extends Entidad {
-    private final boolean domesticable;
+    private boolean domesticable;
     private int edad;
     private boolean adulto;
+
+    protected Animal() {
+    }
+
+    protected void actualizarEdad(int edad) {
+        if (edad < 0) {
+            throw new IllegalArgumentException("La edad no puede ser negativa");
+        }
+        this.edad = edad;
+        this.adulto = edad >= 20;
+    }
 
     protected Animal(String nombre, TipoEntidad tipo, double salud, Vector3D ubicacion,
             boolean domesticable, int edad) {
@@ -23,20 +37,20 @@ public abstract class Animal extends Entidad {
         curar(2);
     }
 
-    public final boolean esDomesticable() {
+    public boolean esDomesticable() {
         return domesticable;
     }
 
-    protected final void envejecer() {
+    protected void envejecer() {
         edad++;
         adulto = edad >= 20;
     }
 
-    public final int getEdad() {
+    public int getEdad() {
         return edad;
     }
 
-    public final boolean isAdulto() {
+    public boolean isAdulto() {
         return adulto;
     }
 }

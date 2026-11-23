@@ -2,8 +2,14 @@ package py.edu.uc.lp3.domain;
 
 import java.util.Objects;
 
+import jakarta.persistence.Entity;
+
+@Entity
 public abstract class Residente extends Entidad {
-    private final boolean puedeComerciar;
+    private boolean puedeComerciar;
+
+    protected Residente() {
+    }
 
     protected Residente(String nombre, TipoEntidad tipo, double salud, Vector3D ubicacion,
             boolean puedeComerciar) {
@@ -15,11 +21,11 @@ public abstract class Residente extends Entidad {
         Objects.requireNonNull(jugador, "El jugador no puede ser nulo");
     }
 
-    protected final boolean puedeComerciar() {
+    protected boolean puedeComerciar() {
         return puedeComerciar;
     }
 
-    public final boolean isPuedeComerciar() {
+    public boolean isPuedeComerciar() {
         return puedeComerciar;
     }
 }

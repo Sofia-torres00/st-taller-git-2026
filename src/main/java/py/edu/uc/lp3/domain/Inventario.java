@@ -4,9 +4,24 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public final class Inventario {
-    private final List<Item> items;
-    private final int capacidad;
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Embeddable;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OrderColumn;
+
+@Embeddable
+public class Inventario {
+    @ElementCollection
+    @CollectionTable(name = "inventario_items", joinColumns = @JoinColumn(name = "entidad_id"))
+    @OrderColumn(name = "posicion")
+    private List<Item> items = new ArrayList<>();
+    @Column(name = "capacidad_inventario")
+    private int capacidad;
+
+    protected Inventario() {
+    }
 
     public Inventario(int capacidad) {
         if (capacidad <= 0) {
