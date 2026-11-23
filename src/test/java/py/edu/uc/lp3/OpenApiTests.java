@@ -136,6 +136,20 @@ class OpenApiTests {
     }
 
     @Test
+    void documentaLosErroresDelTrioConOrigenServicioMensajeYStatus() throws Exception {
+        var spec = documento();
+        var propiedades = spec.at("/components/schemas/ErrorServicioRemoto/properties");
+        assertEquals(4, propiedades.size());
+        for (String campo : Set.of("fuente", "servicio", "mensaje", "status")) assertTrue(propiedades.has(campo));
+        var errores = spec.path("paths").path("/api/demoliciones").path("post").path("responses");
+        for (String codigo : Set.of("404", "409", "502", "504")) {
+            assertEquals("#/components/schemas/ErrorServicioRemoto", errores.path(codigo).path("content")
+                    .path("application/json").path("schema").path("$ref").asText());
+        }
+        java.nio.file.Files.writeString(java.nio.file.Path.of("target", "poo09-openapi.json"), spec.toPrettyString());
+    }
+
+    @Test
     void documentaValidacionSinCambiosConLosMismosParticipantesYErroresExistentes() throws Exception {
         JsonNode documento = documento();
         JsonNode operacion = documento.path("paths").path("/api/explosiones/validar").path("post");

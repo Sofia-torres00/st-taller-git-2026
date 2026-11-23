@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "API REST - Minecraft",
-    "description": "Gestion de entidades, simulacion de explosiones y consulta de objetos externos. Incluye POST /api/explosiones/validar, de solo lectura, para ser consumido por Amir como A2.",
+    "description": "Gestion de entidades, simulacion de explosiones y consulta de objetos externos.",
     "version": "1.0.0"
   },
   "servers": [
@@ -116,19 +116,6 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/EntidadRequest"
-              },
-              "example": {
-                "nombre": "Zombie1",
-                "tipo": "ZOMBIE",
-                "salud": 20,
-                "ubicacion": {
-                  "x": 0,
-                  "y": 64,
-                  "z": 0
-                },
-                "atributos": {
-                  "velocidad": 1.5
-                }
               }
             }
           },
@@ -197,11 +184,6 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ExplosionRequest"
-              },
-              "example": {
-                "creeperId": "11111111-1111-4111-8111-111111111111",
-                "jugadorId": "22222222-2222-4222-8222-222222222222",
-                "cerdoId": "33333333-3333-4333-8333-333333333333"
               }
             }
           },
@@ -246,36 +228,12 @@
                 "$ref": "#/components/schemas/ExplosionRequest"
               },
               "examples": {
-                "200": {
-                  "summary": "Aceptado",
+                "Participantes": {
+                  "description": "Participantes",
                   "value": {
-                    "creeperId": "3257d1ac-73b6-421e-801a-0dbffd67ba18",
-                    "jugadorId": "4cf40b15-4f36-4a94-be20-adfe6ecac178",
-                    "cerdoId": "5e889821-046a-466a-97fb-a9fadb124a8a"
-                  }
-                },
-                "409": {
-                  "summary": "Rechazado: Creeper muerto",
-                  "value": {
-                    "creeperId": "225c8ba6-279b-4f7c-8531-0cda58db456d",
-                    "jugadorId": "4cf40b15-4f36-4a94-be20-adfe6ecac178",
-                    "cerdoId": "5e889821-046a-466a-97fb-a9fadb124a8a"
-                  }
-                },
-                "400": {
-                  "summary": "Rechazado: IDs repetidos",
-                  "value": {
-                    "creeperId": "3257d1ac-73b6-421e-801a-0dbffd67ba18",
-                    "jugadorId": "4cf40b15-4f36-4a94-be20-adfe6ecac178",
-                    "cerdoId": "4cf40b15-4f36-4a94-be20-adfe6ecac178"
-                  }
-                },
-                "404": {
-                  "summary": "Rechazado: participante inexistente",
-                  "value": {
-                    "creeperId": "7eb4d73c-394d-4270-9d33-ee69a84e0c9e",
-                    "jugadorId": "4cf40b15-4f36-4a94-be20-adfe6ecac178",
-                    "cerdoId": "5e889821-046a-466a-97fb-a9fadb124a8a"
+                    "creeperId": "11111111-1111-4111-8111-111111111111",
+                    "jugadorId": "22222222-2222-4222-8222-222222222222",
+                    "cerdoId": "33333333-3333-4333-8333-333333333333"
                   }
                 }
               }
@@ -293,9 +251,9 @@
                 },
                 "example": {
                   "aceptada": true,
-                  "creeperId": "3257d1ac-73b6-421e-801a-0dbffd67ba18",
-                  "jugadorId": "4cf40b15-4f36-4a94-be20-adfe6ecac178",
-                  "cerdoId": "5e889821-046a-466a-97fb-a9fadb124a8a"
+                  "creeperId": "11111111-1111-4111-8111-111111111111",
+                  "jugadorId": "22222222-2222-4222-8222-222222222222",
+                  "cerdoId": "33333333-3333-4333-8333-333333333333"
                 }
               }
             }
@@ -307,8 +265,25 @@
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 },
-                "example": {
-                  "error": "Las tres entidades deben tener identificadores distintos"
+                "examples": {
+                  "IDs repetidos": {
+                    "description": "IDs repetidos",
+                    "value": {
+                      "error": "Las tres entidades deben tener identificadores distintos"
+                    }
+                  },
+                  "Tipo incorrecto": {
+                    "description": "Tipo incorrecto",
+                    "value": {
+                      "error": "La entidad 11111111-1111-4111-8111-111111111111 debe ser de tipo Creeper"
+                    }
+                  },
+                  "JSON o UUID invalido": {
+                    "description": "JSON o UUID invalido",
+                    "value": {
+                      "error": "JSON invÃ¡lido: revise los campos y el tipo de entidad"
+                    }
+                  }
                 }
               }
             }
@@ -321,7 +296,7 @@
                   "$ref": "#/components/schemas/Error"
                 },
                 "example": {
-                  "error": "No existe una entidad con id 7eb4d73c-394d-4270-9d33-ee69a84e0c9e"
+                  "error": "No existe una entidad con id 11111111-1111-4111-8111-111111111111"
                 }
               }
             }
@@ -378,19 +353,6 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/EntidadRequest"
-              },
-              "example": {
-                "nombre": "Zombie1",
-                "tipo": "ZOMBIE",
-                "salud": 20,
-                "ubicacion": {
-                  "x": 0,
-                  "y": 64,
-                  "z": 0
-                },
-                "atributos": {
-                  "velocidad": 1.5
-                }
               }
             }
           },
@@ -457,10 +419,6 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/DemolicionRequest"
-              },
-              "example": {
-                "explosivoNicoId": "b26bb20b-a15f-43ed-b4a9-f2c19480516e",
-                "creeperAmirId": 25
               }
             }
           },
@@ -478,19 +436,87 @@
             }
           },
           "400": {
-            "description": "Solicitud invalida o rechazada por Amir"
+            "description": "Solicitud local invalida (error) o rechazo de Amir (fuente A3)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorServicioRemoto"
+                    },
+                    {}
+                  ]
+                },
+                "examples": {
+                  "Solicitud local": {
+                    "description": "Solicitud local",
+                    "value": {
+                      "error": "Debe indicar explosivoNicoId y creeperAmirId positivo"
+                    }
+                  }
+                }
+              }
+            }
           },
           "404": {
-            "description": "Explosivo de Nico o Creeper de Amir inexistente"
+            "description": "Entidad remota inexistente; fuente y servicio identifican el origen",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorServicioRemoto"
+                }
+              }
+            }
           },
           "409": {
-            "description": "Nico no autoriza el explosivo o Amir rechaza la explosion"
+            "description": "Rechazo de negocio identificado por A2/Nico o A3/Amir",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorServicioRemoto"
+                },
+                "examples": {
+                  "Nico": {
+                    "description": "Nico",
+                    "value": {
+                      "fuente": "A2",
+                      "servicio": "Nico",
+                      "mensaje": "Nico indica que el explosivo no puede explotar",
+                      "status": 409
+                    }
+                  },
+                  "Amir": {
+                    "description": "Amir",
+                    "value": {
+                      "fuente": "A3",
+                      "servicio": "Amir",
+                      "mensaje": "Amir no confirmo la explosion (HTTP 409); verifique su estado antes de repetir",
+                      "status": 409
+                    }
+                  }
+                }
+              }
+            }
           },
           "502": {
-            "description": "Fallo HTTP, de conexion o de contrato remoto; verificar Amir antes de repetir"
+            "description": "Fallo HTTP, de conexion o contrato, con origen A2/A3. Verificar Amir antes de repetir",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorServicioRemoto"
+                }
+              }
+            }
           },
           "504": {
-            "description": "Tiempo de espera agotado; el resultado en Amir puede ser incierto"
+            "description": "Timeout identificado por fuente y servicio; el efecto en Amir puede ser incierto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorServicioRemoto"
+                }
+              }
+            }
           },
           "503": {
             "description": "Amir confirmo la explosion pero fallo el registro en H2"
@@ -511,11 +537,6 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/CombateIntegradoRequest"
-              },
-              "example": {
-                "atacanteId": "11111111-1111-1111-1111-111111111111",
-                "tipoObjetivo": "ZOMBIE",
-                "golpes": 5
               }
             }
           },
@@ -1119,6 +1140,33 @@
           "creeperAmirId",
           "explosivoNicoId"
         ]
+      },
+      "ErrorServicioRemoto": {
+        "type": "object",
+        "description": "Origen del rechazo o fallo remoto; status coincide con el codigo HTTP de Sofi",
+        "properties": {
+          "fuente": {
+            "type": "string",
+            "enum": [
+              "A2",
+              "A3"
+            ],
+            "example": "A2"
+          },
+          "servicio": {
+            "type": "string",
+            "example": "Nico"
+          },
+          "mensaje": {
+            "type": "string",
+            "example": "Nico indica que el explosivo no puede explotar"
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "example": 409
+          }
+        }
       },
       "CreeperExplosionAmir": {
         "type": "object",
