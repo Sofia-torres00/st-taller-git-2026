@@ -56,7 +56,8 @@ distinto y no es un reemplazo directo del escenario actual.
 
 Se preparo la coleccion Insomnia con nueve solicitudes y ejemplos offline
 capturados en pruebas (A1 real, A2/A3 simulados, H2 en memoria). Se valido su
-esquema oficial; queda pendiente la importacion grafica. Se actualizo el contrato
+esquema oficial; la autora confirma la importacion manual correcta en
+Insomnia y la verificacion de su carga. Se actualizo el contrato
 exportado, README, referencias de commits proporcionadas por el grupo y pasos
 de demostracion. No se afirma haber ejecutado el trio completo en vivo.
 
@@ -98,10 +99,10 @@ local de A1. Se documenta esta limitacion, sin presentarla como un bug corregido
 
 La coleccion Insomnia conserva el escenario feliz, GET posterior, rechazos A2/A3
 y GET despues de cada rechazo. El archivo fue validado estructuralmente.
-La importacion grafica en Insomnia se verifica manualmente y aun no se ha
-confirmado. Los ejemplos offline proceden de pruebas con servicios simulados,
-no acreditan una demostracion coordinada en vivo. Ambas verificaciones son
-pendientes de evidencia, no codigo faltante.
+La autora confirma que `docs/insomnia/sofi-poo09.yaml` se importo
+manualmente en Insomnia y que se verifico su carga correctamente. Los ejemplos offline proceden de pruebas con servicios simulados,
+no acreditan una demostracion coordinada en vivo. Esa demostracion sigue
+pendiente de evidencia; no es codigo faltante.
 
 Se conserva el resultado tecnico previamente registrado: 160 tests, 0 failures,
 0 errors, 0 skipped. Este cierre modifica solamente la seccion POO-09 del README
@@ -109,3 +110,14 @@ y agrega esta entrada; no cambia Java, logica ni tests y no los vuelve a ejecuta
 Asistente utilizado: Codex / OpenAI. Se mantienen los registros historicos de
 modelos sin atribuir a esta etapa un identificador no confirmado. No se hizo
 git add, commit ni push.
+
+
+### Confirmacion final de documentacion
+
+La importacion manual de la coleccion Insomnia quedo confirmada por la autora.
+La demostracion coordinada del trio no se registra como ejecutada. Se conserva
+el resultado confirmado: 160 tests, 0 failures, 0 errors, 0 skipped, BUILD SUCCESS.
+Se preparo `docs/POO-09-Sofia-Torres.md` para Classroom. El commit publicado de
+Sofi anterior a este ajuste es `269ff2081b70ed7bd9f02e4514ff61e0e6b04de5`;
+el hash final se completara despues del commit documental. No se modifico
+codigo ni se regenero OpenAPI. No se hizo git add, commit ni push.

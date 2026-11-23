@@ -820,6 +820,11 @@ rollback distribuido ni reintentos automaticos de la detonacion.
 
 ### Referencias y arranque reproducible
 
+El ultimo commit publicado de Sofi antes de este ajuste documental es
+[269ff2081b70ed7bd9f02e4514ff61e0e6b04de5](https://github.com/Sofia-torres00/st-taller-git-2026/commit/269ff2081b70ed7bd9f02e4514ff61e0e6b04de5).
+El hash de Sofi de la tabla conserva el acuerdo anterior del grupo; no debe
+confundirse con este ultimo commit publicado ni con el futuro commit documental.
+
 La tabla identifica los commits acordados/publicados por el grupo. No se
 clonaron ni ejecutaron esos commits ajenos durante esta revision; los hashes
 no certifican la version de los procesos actualmente encendidos. El hash
@@ -878,10 +883,9 @@ Incluye las nueve solicitudes numeradas. Configurar las variables:
 | `a2_base_url` | Nico | `http://100.83.179.97:8080` |
 | `a3_base_url` | Amir | `http://100.78.121.31:8080` |
 
-El archivo fue validado estructuralmente.
-La importación gráfica en Insomnia se verifica manualmente.
-La validacion estructural utilizo el esquema oficial Insomnia 5.1; no se
-ha confirmado todavia la importacion en la aplicacion.
+El archivo fue validado estructuralmente con el esquema oficial Insomnia 5.1.
+La autora confirma que `docs/insomnia/sofi-poo09.yaml` fue importado
+correctamente de forma manual en Insomnia y que se verifico su carga.
 
 Los ejemplos estan en la descripcion de cada solicitud y en
 [ejemplos-poo09.json](docs/insomnia/ejemplos-poo09.json), disponibles offline.
@@ -967,7 +971,6 @@ No se volvieron a ejecutar tests para esta actualizacion exclusivamente document
 
 Pendientes de evidencia, no de implementacion:
 
-- Confirmar manualmente la importacion grafica en Insomnia.
 - Ejecutar y registrar la demostracion coordinada en vivo con los tres servicios.
 
 No se ejecuto una nueva detonacion real remota durante este cierre.
