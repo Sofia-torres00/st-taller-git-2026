@@ -14,10 +14,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import py.edu.uc.lp3.dto.DemolicionRequest;
 import py.edu.uc.lp3.dto.DemolicionResponse;
+import py.edu.uc.lp3.dto.ErrorServicioRemoto;
 import py.edu.uc.lp3.service.DemolicionService;
 
 @RestController
@@ -37,11 +40,20 @@ public class DemolicionController {
                     + "y elimina su Creeper. Sofi guarda en H2 solo las explosiones confirmadas. "
                     + "Los dos IDs identifican entidades independientes. No hay reintentos automaticos ni rollback remoto.")
     @ApiResponse(responseCode = "201", description = "Explosion confirmada por Amir y registrada por Sofi")
-    @ApiResponse(responseCode = "400", description = "Solicitud invalida o rechazada por Amir", content = @Content)
-    @ApiResponse(responseCode = "404", description = "Explosivo de Nico o Creeper de Amir inexistente", content = @Content)
-    @ApiResponse(responseCode = "409", description = "Nico no autoriza el explosivo o Amir rechaza la explosion", content = @Content)
-    @ApiResponse(responseCode = "502", description = "Fallo HTTP, de conexion o de contrato remoto; verificar Amir antes de repetir", content = @Content)
-    @ApiResponse(responseCode = "504", description = "Tiempo de espera agotado; el resultado en Amir puede ser incierto", content = @Content)
+    @ApiResponse(responseCode = "400", description = "Solicitud local invalida (error) o rechazo de Amir (fuente A3)",
+            content = @Content(mediaType = "application/json", schema = @Schema(oneOf = {ErrorServicioRemoto.class, java.util.Map.class}),
+                    examples = @ExampleObject(name = "Solicitud local", value = "{\"error\":\"Debe indicar explosivoNicoId y creeperAmirId positivo\"}")))
+    @ApiResponse(responseCode = "404", description = "Entidad remota inexistente; fuente y servicio identifican el origen",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorServicioRemoto.class)))
+    @ApiResponse(responseCode = "409", description = "Rechazo de negocio identificado por A2/Nico o A3/Amir",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorServicioRemoto.class), examples = {
+                @ExampleObject(name = "Nico", value = "{\"fuente\":\"A2\",\"servicio\":\"Nico\",\"mensaje\":\"Nico indica que el explosivo no puede explotar\",\"status\":409}"),
+                @ExampleObject(name = "Amir", value = "{\"fuente\":\"A3\",\"servicio\":\"Amir\",\"mensaje\":\"Amir no confirmo la explosion (HTTP 409); verifique su estado antes de repetir\",\"status\":409}")
+            }))
+    @ApiResponse(responseCode = "502", description = "Fallo HTTP, de conexion o contrato, con origen A2/A3. Verificar Amir antes de repetir",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorServicioRemoto.class)))
+    @ApiResponse(responseCode = "504", description = "Timeout identificado por fuente y servicio; el efecto en Amir puede ser incierto",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorServicioRemoto.class)))
     @ApiResponse(responseCode = "503", description = "Amir confirmo la explosion pero fallo el registro en H2", content = @Content)
     public ResponseEntity<DemolicionResponse> ejecutar(@RequestBody DemolicionRequest solicitud) {
         var resultado = service.ejecutar(solicitud);

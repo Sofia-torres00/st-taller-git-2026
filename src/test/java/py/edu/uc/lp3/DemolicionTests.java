@@ -8,6 +8,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.sql.Clob;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -27,11 +33,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 import py.edu.uc.lp3.persistence.repository.DemolicionRepository;
+import py.edu.uc.lp3.persistence.repository.EntidadRepository;
+import py.edu.uc.lp3.domain.Demolicion;
+import py.edu.uc.lp3.domain.Zombie;
+import py.edu.uc.lp3.domain.Vector3D;
 
 @SpringBootTest(properties = "spring.datasource.url=jdbc:h2:mem:demoliciones-test;DB_CLOSE_DELAY=-1")
 @AutoConfigureMockMvc
@@ -63,6 +74,8 @@ class DemolicionTests {
     @Autowired private MockMvc mockMvc;
     @Autowired private ObjectMapper objectMapper;
     @Autowired private DemolicionRepository repository;
+    @Autowired private EntidadRepository entidades;
+    @Autowired private JdbcTemplate jdbc;
 
     @DynamicPropertySource
     static void propiedades(DynamicPropertyRegistry registry) {
@@ -119,6 +132,9 @@ class DemolicionTests {
                 .andExpect(jsonPath("$.length()").value(1));
         assertEquals(1, llamadasNico.get());
         assertEquals(1, llamadasAmir.get());
+        guardarEjemplo("feliz", 201, respuesta.getContentAsString());
+        guardarEjemplo("historial-feliz", 200, mockMvc.perform(get("/api/demoliciones"))
+                .andReturn().getResponse().getContentAsString());
     }
 
     @Test
@@ -126,6 +142,34 @@ class DemolicionTests {
         respuestaNico = NICO_OK.replace("true", "false");
         ejecutarEsperando(409);
         assertEquals(0, llamadasAmir.get());
+    }
+
+    @ParameterizedTest
+    @CsvSource({"A2,409", "A3,409", "A3,404"})
+    void identificaElOrigenYConservaTodaLaBaseConHistorialPrevio(String fuente, int estado) throws Exception {
+        entidades.saveAndFlush(new Zombie("Preexistente", new Vector3D(0, 64, 0)));
+        repository.saveAndFlush(new Demolicion(UUID.randomUUID(), 25L, AMIR_OK));
+        var antes = estadoBase();
+        if (fuente.equals("A2")) {
+            respuestaNico = NICO_OK.replace("true", "false");
+        } else {
+            codigoAmir = estado;
+        }
+        var respuesta = mockMvc.perform(post("/api/demoliciones").contentType(MediaType.APPLICATION_JSON).content(SOLICITUD))
+                .andExpect(status().is(estado))
+                .andExpect(jsonPath("$.fuente").value(fuente))
+                .andExpect(jsonPath("$.servicio").value(fuente.equals("A2") ? "Nico" : "Amir"))
+                .andExpect(jsonPath("$.mensaje").isString())
+                .andExpect(jsonPath("$.status").value(estado)).andReturn().getResponse();
+        assertEquals(4, objectMapper.readTree(respuesta.getContentAsString()).size());
+        assertEquals(antes, estadoBase());
+        assertEquals(1, repository.count());
+        if (fuente.equals("A2")) assertEquals(0, llamadasAmir.get());
+        if (estado == 409) {
+            guardarEjemplo("rechazo-" + fuente.toLowerCase(), estado, respuesta.getContentAsString());
+            guardarEjemplo("historial-rechazo-" + fuente.toLowerCase(), 200,
+                    mockMvc.perform(get("/api/demoliciones")).andReturn().getResponse().getContentAsString());
+        }
     }
 
     @Test
@@ -221,8 +265,37 @@ class DemolicionTests {
 
     private void ejecutarEsperando(int estado) throws Exception {
         mockMvc.perform(post("/api/demoliciones").contentType(MediaType.APPLICATION_JSON).content(SOLICITUD))
-                .andExpect(status().is(estado));
+                .andExpect(status().is(estado))
+                .andExpect(jsonPath("$.fuente").value(llamadasAmir.get() == 0 ? "A2" : "A3"))
+                .andExpect(jsonPath("$.servicio").value(llamadasAmir.get() == 0 ? "Nico" : "Amir"))
+                .andExpect(jsonPath("$.mensaje").isString())
+                .andExpect(jsonPath("$.status").value(estado));
         assertEquals(0, repository.count());
+    }
+
+    private void guardarEjemplo(String nombre, int estado, String cuerpo) throws Exception {
+        Path carpeta = Path.of("target", "poo09-ejemplos");
+        Files.createDirectories(carpeta);
+        Files.writeString(carpeta.resolve(nombre + ".json"), objectMapper.writerWithDefaultPrettyPrinter()
+                .writeValueAsString(Map.of("status", estado, "body", objectMapper.readTree(cuerpo),
+                        "procedencia", "Captura de DemolicionTests: A1 real, A2/A3 simulados y H2 en memoria")));
+    }
+
+    private Map<String, List<List<String>>> estadoBase() {
+        Map<String, List<List<String>>> resultado = new LinkedHashMap<>();
+        for (String sql : List.of("select * from entidades order by id", "select * from inventario_items order by entidad_id, posicion",
+                "select * from demoliciones order by id")) {
+            resultado.put(sql, jdbc.query(sql, (rs, fila) -> {
+                List<String> valores = new ArrayList<>();
+                for (int columna = 1; columna <= rs.getMetaData().getColumnCount(); columna++) {
+                    Object valor = rs.getObject(columna);
+                    valores.add(valor instanceof Clob clob ? clob.getSubString(1, (int) clob.length())
+                            : valor == null ? null : valor.toString());
+                }
+                return valores;
+            }));
+        }
+        return resultado;
     }
 
     private static HttpServer servidor(boolean esNico) {
