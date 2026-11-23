@@ -1,0 +1,152 @@
+{
+  "feliz": {
+    "status": 201,
+    "procedencia": "Captura de DemolicionTests: A1 real, A2/A3 simulados y H2 en memoria",
+    "body": {
+      "id": "96d82197-c7a2-4998-b265-86499789c52e",
+      "explosivoNicoId": "b26bb20b-a15f-43ed-b4a9-f2c19480516e",
+      "creeperAmirId": 25,
+      "fecha": "2026-11-23T22:32:23.795027400Z",
+      "resultadoAmir": {
+        "radio": 3.0,
+        "creeper": {
+          "id": 25,
+          "cargado": false,
+          "vidaFinal": 0,
+          "eliminado": true,
+          "mensaje": "Explosion aplicada"
+        },
+        "objetivos": [
+          {
+            "id": 13,
+            "nombre": "Player",
+            "distancia": 1.0,
+            "vidaInicial": 20,
+            "danoRecibido": 13,
+            "vidaFinal": 7,
+            "eliminado": false
+          }
+        ]
+      }
+    }
+  },
+  "historial-feliz": {
+    "status": 200,
+    "procedencia": "Captura de DemolicionTests: A1 real, A2/A3 simulados y H2 en memoria",
+    "body": [
+      {
+        "id": "96d82197-c7a2-4998-b265-86499789c52e",
+        "explosivoNicoId": "b26bb20b-a15f-43ed-b4a9-f2c19480516e",
+        "creeperAmirId": 25,
+        "fecha": "2026-11-23T22:32:23.795027Z",
+        "resultadoAmir": {
+          "radio": 3.0,
+          "creeper": {
+            "id": 25,
+            "cargado": false,
+            "vidaFinal": 0,
+            "eliminado": true,
+            "mensaje": "Explosion aplicada"
+          },
+          "objetivos": [
+            {
+              "id": 13,
+              "nombre": "Player",
+              "distancia": 1.0,
+              "vidaInicial": 20,
+              "danoRecibido": 13,
+              "vidaFinal": 7,
+              "eliminado": false
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "historial-rechazo-a2": {
+    "status": 200,
+    "procedencia": "Captura de DemolicionTests: A1 real, A2/A3 simulados y H2 en memoria",
+    "body": [
+      {
+        "id": "6b225f0e-1f22-4d01-963c-6d4df0e3b9b2",
+        "explosivoNicoId": "66154084-12c5-4d6e-b37f-a6ce83999520",
+        "creeperAmirId": 25,
+        "fecha": "2026-11-23T22:32:18.676004Z",
+        "resultadoAmir": {
+          "radio": 3.0,
+          "creeper": {
+            "id": 25,
+            "cargado": false,
+            "vidaFinal": 0,
+            "eliminado": true,
+            "mensaje": "Explosion aplicada"
+          },
+          "objetivos": [
+            {
+              "id": 13,
+              "nombre": "Player",
+              "distancia": 1.0,
+              "vidaInicial": 20,
+              "danoRecibido": 13,
+              "vidaFinal": 7,
+              "eliminado": false
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "historial-rechazo-a3": {
+    "status": 200,
+    "procedencia": "Captura de DemolicionTests: A1 real, A2/A3 simulados y H2 en memoria",
+    "body": [
+      {
+        "id": "8a1b327f-e4be-4b7c-a7ed-f3c479862a83",
+        "explosivoNicoId": "d7128166-5270-493d-976d-e651cc148e1b",
+        "creeperAmirId": 25,
+        "fecha": "2026-11-23T22:32:19.369412Z",
+        "resultadoAmir": {
+          "radio": 3.0,
+          "creeper": {
+            "id": 25,
+            "cargado": false,
+            "vidaFinal": 0,
+            "eliminado": true,
+            "mensaje": "Explosion aplicada"
+          },
+          "objetivos": [
+            {
+              "id": 13,
+              "nombre": "Player",
+              "distancia": 1.0,
+              "vidaInicial": 20,
+              "danoRecibido": 13,
+              "vidaFinal": 7,
+              "eliminado": false
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "rechazo-a2": {
+    "status": 409,
+    "procedencia": "Captura de DemolicionTests: A1 real, A2/A3 simulados y H2 en memoria",
+    "body": {
+      "fuente": "A2",
+      "servicio": "Nico",
+      "mensaje": "Nico indica que el explosivo no puede explotar",
+      "status": 409
+    }
+  },
+  "rechazo-a3": {
+    "status": 409,
+    "procedencia": "Captura de DemolicionTests: A1 real, A2/A3 simulados y H2 en memoria",
+    "body": {
+      "fuente": "A3",
+      "servicio": "Amir",
+      "mensaje": "Amir no confirmo la explosion (HTTP 409); verifique su estado antes de repetir",
+      "status": 409
+    }
+  }
+}

@@ -1,0 +1,187 @@
+type: collection.insomnia.rest/5.0
+schema_version: '5.1'
+name: Sofi - POO-09 - Tr?o Minecraft
+meta:
+  id: wrk_73b601184ed54e9ab1e99fd8e72ebdb0
+collection:
+- name: 01 - OpenAPI A1
+  url: '{{ _.a1_base_url }}/v3/api-docs'
+  method: GET
+  meta:
+    id: req_1b97830ea3d44a04bc3d56518f9d4e22
+    sortKey: 0
+    description: Preparar IDs seg?n README; no ejecutar toda la colecci?n autom?ticamente.
+  headers:
+  - name: Accept
+    value: application/json
+- name: 02 - OpenAPI Nico A2
+  url: '{{ _.a2_base_url }}/v3/api-docs'
+  method: GET
+  meta:
+    id: req_b89aecd0a65342aaba3ba44a7258eaf6
+    sortKey: 1
+    description: Preparar IDs seg?n README; no ejecutar toda la colecci?n autom?ticamente.
+  headers:
+  - name: Accept
+    value: application/json
+- name: 03 - OpenAPI Amir A3
+  url: '{{ _.a3_base_url }}/v3/api-docs'
+  method: GET
+  meta:
+    id: req_1cc08e3081cd46269474aef37828d0fd
+    sortKey: 2
+    description: Preparar IDs seg?n README; no ejecutar toda la colecci?n autom?ticamente.
+  headers:
+  - name: Accept
+    value: application/json
+- name: 04 - Escenario feliz
+  url: '{{ _.a1_base_url }}/api/demoliciones'
+  method: POST
+  meta:
+    id: req_f7cf591a50114de48e5b5473d6e1f194
+    sortKey: 3
+    description: "Preparar IDs seg?n README; no ejecutar toda la colecci?n autom?ticamente.\n\
+      Ejemplo offline: A1 real, A2/A3 simulados, H2 en memoria.\n{\n  \"status\":\
+      \ 201,\n  \"procedencia\": \"Captura de DemolicionTests: A1 real, A2/A3 simulados\
+      \ y H2 en memoria\",\n  \"body\": {\n    \"id\": \"96d82197-c7a2-4998-b265-86499789c52e\"\
+      ,\n    \"explosivoNicoId\": \"b26bb20b-a15f-43ed-b4a9-f2c19480516e\",\n    \"\
+      creeperAmirId\": 25,\n    \"fecha\": \"2026-11-23T22:32:23.795027400Z\",\n \
+      \   \"resultadoAmir\": {\n      \"radio\": 3.0,\n      \"creeper\": {\n    \
+      \    \"id\": 25,\n        \"cargado\": false,\n        \"vidaFinal\": 0,\n \
+      \       \"eliminado\": true,\n        \"mensaje\": \"Explosion aplicada\"\n\
+      \      },\n      \"objetivos\": [\n        {\n          \"id\": 13,\n      \
+      \    \"nombre\": \"Player\",\n          \"distancia\": 1.0,\n          \"vidaInicial\"\
+      : 20,\n          \"danoRecibido\": 13,\n          \"vidaFinal\": 7,\n      \
+      \    \"eliminado\": false\n        }\n      ]\n    }\n  }\n}"
+  headers:
+  - name: Accept
+    value: application/json
+  - name: Content-Type
+    value: application/json
+  body:
+    mimeType: application/json
+    text: '{"explosivoNicoId":"{{ _.nico_respaldo_id }}","creeperAmirId":{{ _.amir_ejecutor_id
+      }}}'
+- name: 05 - GET posterior al escenario feliz
+  url: '{{ _.a1_base_url }}/api/demoliciones'
+  method: GET
+  meta:
+    id: req_c991250fbdf74b9ea4ad9e148debe0cb
+    sortKey: 4
+    description: "Preparar IDs seg?n README; no ejecutar toda la colecci?n autom?ticamente.\n\
+      Ejemplo offline: A1 real, A2/A3 simulados, H2 en memoria.\n{\n  \"status\":\
+      \ 200,\n  \"procedencia\": \"Captura de DemolicionTests: A1 real, A2/A3 simulados\
+      \ y H2 en memoria\",\n  \"body\": [\n    {\n      \"id\": \"96d82197-c7a2-4998-b265-86499789c52e\"\
+      ,\n      \"explosivoNicoId\": \"b26bb20b-a15f-43ed-b4a9-f2c19480516e\",\n  \
+      \    \"creeperAmirId\": 25,\n      \"fecha\": \"2026-11-23T22:32:23.795027Z\"\
+      ,\n      \"resultadoAmir\": {\n        \"radio\": 3.0,\n        \"creeper\"\
+      : {\n          \"id\": 25,\n          \"cargado\": false,\n          \"vidaFinal\"\
+      : 0,\n          \"eliminado\": true,\n          \"mensaje\": \"Explosion aplicada\"\
+      \n        },\n        \"objetivos\": [\n          {\n            \"id\": 13,\n\
+      \            \"nombre\": \"Player\",\n            \"distancia\": 1.0,\n    \
+      \        \"vidaInicial\": 20,\n            \"danoRecibido\": 13,\n         \
+      \   \"vidaFinal\": 7,\n            \"eliminado\": false\n          }\n     \
+      \   ]\n      }\n    }\n  ]\n}"
+  headers:
+  - name: Accept
+    value: application/json
+- name: 06 - Rechazo Nico A2
+  url: '{{ _.a1_base_url }}/api/demoliciones'
+  method: POST
+  meta:
+    id: req_8634231126e947a19efe3a826a16f4e2
+    sortKey: 5
+    description: "Preparar IDs seg?n README; no ejecutar toda la colecci?n autom?ticamente.\n\
+      Ejemplo offline: A1 real, A2/A3 simulados, H2 en memoria.\n{\n  \"status\":\
+      \ 409,\n  \"procedencia\": \"Captura de DemolicionTests: A1 real, A2/A3 simulados\
+      \ y H2 en memoria\",\n  \"body\": {\n    \"fuente\": \"A2\",\n    \"servicio\"\
+      : \"Nico\",\n    \"mensaje\": \"Nico indica que el explosivo no puede explotar\"\
+      ,\n    \"status\": 409\n  }\n}"
+  headers:
+  - name: Accept
+    value: application/json
+  - name: Content-Type
+    value: application/json
+  body:
+    mimeType: application/json
+    text: '{"explosivoNicoId":"{{ _.nico_rechazo_id }}","creeperAmirId":{{ _.amir_ejecutor_id
+      }}}'
+- name: 07 - GET posterior rechazo A2
+  url: '{{ _.a1_base_url }}/api/demoliciones'
+  method: GET
+  meta:
+    id: req_34e876e8bfc04e8e9bea87f8ffdbed6f
+    sortKey: 6
+    description: "Preparar IDs seg?n README; no ejecutar toda la colecci?n autom?ticamente.\n\
+      Ejemplo offline: A1 real, A2/A3 simulados, H2 en memoria.\n{\n  \"status\":\
+      \ 200,\n  \"procedencia\": \"Captura de DemolicionTests: A1 real, A2/A3 simulados\
+      \ y H2 en memoria\",\n  \"body\": [\n    {\n      \"id\": \"6b225f0e-1f22-4d01-963c-6d4df0e3b9b2\"\
+      ,\n      \"explosivoNicoId\": \"66154084-12c5-4d6e-b37f-a6ce83999520\",\n  \
+      \    \"creeperAmirId\": 25,\n      \"fecha\": \"2026-11-23T22:32:18.676004Z\"\
+      ,\n      \"resultadoAmir\": {\n        \"radio\": 3.0,\n        \"creeper\"\
+      : {\n          \"id\": 25,\n          \"cargado\": false,\n          \"vidaFinal\"\
+      : 0,\n          \"eliminado\": true,\n          \"mensaje\": \"Explosion aplicada\"\
+      \n        },\n        \"objetivos\": [\n          {\n            \"id\": 13,\n\
+      \            \"nombre\": \"Player\",\n            \"distancia\": 1.0,\n    \
+      \        \"vidaInicial\": 20,\n            \"danoRecibido\": 13,\n         \
+      \   \"vidaFinal\": 7,\n            \"eliminado\": false\n          }\n     \
+      \   ]\n      }\n    }\n  ]\n}"
+  headers:
+  - name: Accept
+    value: application/json
+- name: 08 - Rechazo Amir A3
+  url: '{{ _.a1_base_url }}/api/demoliciones'
+  method: POST
+  meta:
+    id: req_b5981c4766fe4dc2999e00416fe6625c
+    sortKey: 7
+    description: "Preparar IDs seg?n README; no ejecutar toda la colecci?n autom?ticamente.\n\
+      Ejemplo offline: A1 real, A2/A3 simulados, H2 en memoria.\n{\n  \"status\":\
+      \ 409,\n  \"procedencia\": \"Captura de DemolicionTests: A1 real, A2/A3 simulados\
+      \ y H2 en memoria\",\n  \"body\": {\n    \"fuente\": \"A3\",\n    \"servicio\"\
+      : \"Amir\",\n    \"mensaje\": \"Amir no confirmo la explosion (HTTP 409); verifique\
+      \ su estado antes de repetir\",\n    \"status\": 409\n  }\n}"
+  headers:
+  - name: Accept
+    value: application/json
+  - name: Content-Type
+    value: application/json
+  body:
+    mimeType: application/json
+    text: '{"explosivoNicoId":"{{ _.nico_respaldo_id }}","creeperAmirId":{{ _.amir_rechazo_id
+      }}}'
+- name: 09 - GET posterior rechazo A3
+  url: '{{ _.a1_base_url }}/api/demoliciones'
+  method: GET
+  meta:
+    id: req_d0fd8616679f406b9e19c0edd2829d10
+    sortKey: 8
+    description: "Preparar IDs seg?n README; no ejecutar toda la colecci?n autom?ticamente.\n\
+      Ejemplo offline: A1 real, A2/A3 simulados, H2 en memoria.\n{\n  \"status\":\
+      \ 200,\n  \"procedencia\": \"Captura de DemolicionTests: A1 real, A2/A3 simulados\
+      \ y H2 en memoria\",\n  \"body\": [\n    {\n      \"id\": \"8a1b327f-e4be-4b7c-a7ed-f3c479862a83\"\
+      ,\n      \"explosivoNicoId\": \"d7128166-5270-493d-976d-e651cc148e1b\",\n  \
+      \    \"creeperAmirId\": 25,\n      \"fecha\": \"2026-11-23T22:32:19.369412Z\"\
+      ,\n      \"resultadoAmir\": {\n        \"radio\": 3.0,\n        \"creeper\"\
+      : {\n          \"id\": 25,\n          \"cargado\": false,\n          \"vidaFinal\"\
+      : 0,\n          \"eliminado\": true,\n          \"mensaje\": \"Explosion aplicada\"\
+      \n        },\n        \"objetivos\": [\n          {\n            \"id\": 13,\n\
+      \            \"nombre\": \"Player\",\n            \"distancia\": 1.0,\n    \
+      \        \"vidaInicial\": 20,\n            \"danoRecibido\": 13,\n         \
+      \   \"vidaFinal\": 7,\n            \"eliminado\": false\n          }\n     \
+      \   ]\n      }\n    }\n  ]\n}"
+  headers:
+  - name: Accept
+    value: application/json
+environments:
+  name: Grupo Tailscale
+  meta:
+    id: env_e1208881c3fb4d0db4f97af5f9837228
+  data:
+    a1_base_url: http://100.79.75.27:8081
+    a2_base_url: http://100.83.179.97:8080
+    a3_base_url: http://100.78.121.31:8080
+    nico_respaldo_id: b26bb20b-a15f-43ed-b4a9-f2c19480516e
+    nico_rechazo_id: 380f257a-79b9-4a0a-bd80-faa311bb53d6
+    amir_ejecutor_id: 0
+    amir_rechazo_id: '9223372036854775807'
