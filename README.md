@@ -30,6 +30,58 @@ Spring Boot 3.5 segun la [documentacion de springdoc](https://springdoc.org/v2/f
 La configuracion general esta en `OpenApiConfig`; las rutas y el orden de la UI
 se configuran mediante propiedades `springdoc` en `application.properties`.
 
+## Validacion de explosion para Amir: sin efectos secundarios
+
+`POST /api/explosiones/validar` recibe el mismo `ExplosionRequest` que
+`POST /api/explosiones` y reutiliza sus validaciones compartidas en
+`ExplosionService`: UUID distintos, participantes existentes de tipo Creeper,
+Jugador y Cerdo, y Creeper vivo. El controller solo delega en el servicio.
+
+```json
+{
+  "creeperId": "UUID_DEL_CREEPER",
+  "jugadorId": "UUID_DEL_JUGADOR",
+  "cerdoId": "UUID_DEL_CERDO"
+}
+```
+
+Con `Content-Type: application/json`, una aprobacion devuelve HTTP 200:
+
+```json
+{
+  "aceptada": true,
+  "creeperId": "UUID_DEL_CREEPER",
+  "jugadorId": "UUID_DEL_JUGADOR",
+  "cerdoId": "UUID_DEL_CERDO"
+}
+```
+
+La operacion usa una transaccion `readOnly` y una consulta sin bloqueo de
+escritura. No aplica dano, no consume al Creeper, no altera su encendido ni su
+fuseTime, no elimina entidades, no guarda historial y no llama a Amir ni a Nico.
+Las consultas repetidas conservan H2. La aprobacion describe el estado actual;
+no reserva una explosion futura frente a cambios concurrentes.
+
+La regla actual no exige que el jugador o el cerdo esten vivos ni dentro del
+radio. La distancia determina el dano al ejecutar, no la aprobacion.
+
+| HTTP | Motivo | Ejemplo del cuerpo de error |
+| --- | --- | --- |
+| 400 | JSON/UUID invalidos o campos ausentes | `{"error":"Debe indicar creeperId, jugadorId y cerdoId"}` para un objeto JSON sin participantes |
+| 400 | Participantes repetidos | `{"error":"Las tres entidades deben tener identificadores distintos"}` |
+| 400 | Tipo incorrecto | `{"error":"La entidad UUID debe ser de tipo Creeper"}` |
+| 404 | Participante inexistente | `{"error":"No existe una entidad con id UUID"}` |
+| 409 | Creeper muerto | `{"error":"Un creeper muerto no puede explotar"}` |
+
+Un JSON malformado o un UUID que no se puede deserializar conserva el mensaje
+existente `{"error":"JSON inválido: revise los campos y el tipo de entidad"}`.
+OpenAPI y Swagger UI incluyen los esquemas y ejemplos completos. Los casos con
+UUID reales para compartir estan en [para-amir-validacion.txt](docs/para-amir-validacion.txt)
+y [casos-validacion-amir.json](docs/casos-validacion-amir.json).
+
+`POST /api/explosiones` conserva el bloqueo transaccional y sus efectos. Las
+demoliciones y el resto de endpoints permanecen independientes de esta consulta.
+
 ## Demolicion coordinada: Sofi + Nico + Amir
 
 `POST /api/demoliciones` implementa el escenario aprobado para el trio:
@@ -83,7 +135,7 @@ devuelve HTTP 503 indicando ese resultado; no revierte la explosion ni la repite
 
 Para importar los endpoints en Insomnia, usar **Import > File** y seleccionar
 [`docs/minecraft-openapi.json`](docs/minecraft-openapi.json). El archivo incluye
-los 15 endpoints, ejemplos de solicitudes y las integraciones con Nico y Amir;
+los 16 endpoints, ejemplos de solicitudes y las integraciones con Nico y Amir;
 incluye los servidores `http://100.79.75.27:8081` y `http://localhost:8081`.
 Reiniciar la aplicacion despues de actualizar el
 codigo para que los endpoints nuevos esten disponibles. Los IDs de participantes

@@ -146,6 +146,23 @@ class ExplosionServiceRestTests {
     }
 
     @Test
+    void validarNoConsumeElCreeperYLaExplosionOriginalSigueFuncionando() throws Exception {
+        var p = participantes(3, 7);
+        mockMvc.perform(post(RUTA + "/validar").contentType(MediaType.APPLICATION_JSON).content(json(p.solicitud())))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.aceptada").value(true));
+        assertEquals(20, salud(p.creeper()));
+        assertEquals(20, salud(p.jugador()));
+        assertEquals(10, salud(p.cerdo()));
+        mockMvc.perform(post(RUTA).contentType(MediaType.APPLICATION_JSON).content(json(p.solicitud())))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.saludCreeper").value(0));
+        assertEquals(10, salud(p.jugador()));
+        assertEquals(10, salud(p.cerdo()));
+        mockMvc.perform(post(RUTA + "/validar").contentType(MediaType.APPLICATION_JSON).content(json(p.solicitud())))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error").value("Un creeper muerto no puede explotar"));
+    }
+
+    @Test
     void unFalloRevierteLosCambiosDeLasTresClases() {
         var p = participantes(0, 0);
         var transaccion = new TransactionTemplate(transactionManager);

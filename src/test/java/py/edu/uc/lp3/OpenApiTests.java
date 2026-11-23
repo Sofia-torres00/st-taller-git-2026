@@ -135,6 +135,25 @@ class OpenApiTests {
                 .andExpect(content().string(org.hamcrest.Matchers.containsString("openapi:")));
     }
 
+    @Test
+    void documentaValidacionSinCambiosConLosMismosParticipantesYErroresExistentes() throws Exception {
+        JsonNode documento = documento();
+        JsonNode operacion = documento.path("paths").path("/api/explosiones/validar").path("post");
+        assertTrue(operacion.path("description").asText().contains("no modifica H2"));
+        assertEquals("#/components/schemas/ExplosionRequest", operacion.path("requestBody")
+                .path("content").path("application/json").path("schema").path("$ref").asText());
+        assertTrue(operacion.path("requestBody").path("required").asBoolean());
+        assertFalse(operacion.path("requestBody").path("content").path("application/json").path("examples").isEmpty());
+        for (String codigo : Set.of("200", "400", "404", "409")) {
+            JsonNode contenido = operacion.path("responses").path(codigo).path("content").path("application/json");
+            assertTrue(contenido.has("example") || !contenido.path("examples").isEmpty(), codigo);
+            assertFalse(contenido.path("schema").path("$ref").asText().isBlank(), codigo);
+        }
+        JsonNode respuesta = documento.path("components").path("schemas").path("ValidacionExplosionResponse");
+        assertEquals(4, respuesta.path("properties").size());
+        assertEquals(4, respuesta.path("required").size());
+    }
+
     private JsonNode documento() throws Exception {
         return objectMapper.readTree(mockMvc.perform(get("/v3/api-docs"))
                 .andExpect(status().isOk())
