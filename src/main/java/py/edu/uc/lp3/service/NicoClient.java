@@ -32,7 +32,7 @@ public class NicoClient {
                     int codigo = response.statusCode().value();
                     HttpStatus estado = codigo == 404 ? HttpStatus.NOT_FOUND
                             : codigo == 409 ? HttpStatus.CONFLICT : HttpStatus.BAD_GATEWAY;
-                    return Mono.error(new ResponseStatusException(estado,
+                    return Mono.error(new ServicioRemotoException("A2", "Nico", estado,
                             "Nico rechazo la consulta del explosivo (HTTP " + codigo + ")"));
                 })
                 .bodyToMono(ExplosivoNicoResponse.class)
@@ -44,14 +44,14 @@ public class NicoClient {
                     return resultado;
                 })
                 .timeout(timeout)
-                .onErrorMap(TimeoutException.class, exception -> new ResponseStatusException(
+                .onErrorMap(TimeoutException.class, exception -> new ServicioRemotoException("A2", "Nico",
                         HttpStatus.GATEWAY_TIMEOUT, "Nico no respondio a tiempo; no se llamo a Amir", exception))
                 .onErrorMap(exception -> !(exception instanceof ResponseStatusException), exception ->
-                        new ResponseStatusException(HttpStatus.BAD_GATEWAY, "No se pudo consultar a Nico", exception))
+                        new ServicioRemotoException("A2", "Nico", HttpStatus.BAD_GATEWAY, "No se pudo consultar a Nico", exception))
                 .block();
     }
 
     private ResponseStatusException invalida() {
-        return new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Respuesta de Nico incompleta o invalida");
+        return new ServicioRemotoException("A2", "Nico", HttpStatus.BAD_GATEWAY, "Respuesta de Nico incompleta o invalida");
     }
 }

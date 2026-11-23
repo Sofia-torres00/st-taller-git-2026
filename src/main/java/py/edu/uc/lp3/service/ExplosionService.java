@@ -15,6 +15,7 @@ import py.edu.uc.lp3.domain.Vector3D;
 import py.edu.uc.lp3.dto.ExplosionRequest;
 import py.edu.uc.lp3.dto.ExplosionResponse;
 import py.edu.uc.lp3.dto.ExplosionResponse.Resultado;
+import py.edu.uc.lp3.dto.ValidacionExplosionResponse;
 import py.edu.uc.lp3.persistence.repository.EntidadRepository;
 
 @Service
@@ -30,6 +31,30 @@ public class ExplosionService {
 
     @Transactional
     public ExplosionResponse simular(ExplosionRequest solicitud) {
+        List<UUID> ids = validarIdentificadores(solicitud);
+        // Solo bloquea los tres participantes, en un orden estable.
+        Participantes participantes = validarParticipantes(solicitud, repository.buscarParaExplosion(ids));
+        Creeper creeper = participantes.creeper();
+
+        Vector3D centro = creeper.obtenerPosicion();
+        List<Resultado> resultados = List.of(aplicarDanio(centro, participantes.jugador()),
+                aplicarDanio(centro, participantes.cerdo()));
+        creeper.finalizarExplosion();
+
+        // JPA confirma los cambios de los tres participantes juntos.
+        return new ExplosionResponse(creeper.getId(), centro, RADIO, DANIO_MAXIMO,
+                creeper.getSalud(), resultados);
+    }
+
+    @Transactional(readOnly = true)
+    public ValidacionExplosionResponse validar(ExplosionRequest solicitud) {
+        List<UUID> ids = validarIdentificadores(solicitud);
+        // Consulta sin bloqueo de escritura y sin invocar ninguna operacion mutadora del dominio.
+        validarParticipantes(solicitud, repository.findAllById(ids));
+        return new ValidacionExplosionResponse(true, solicitud.creeperId(), solicitud.jugadorId(), solicitud.cerdoId());
+    }
+
+    private List<UUID> validarIdentificadores(ExplosionRequest solicitud) {
         if (solicitud == null || solicitud.creeperId() == null
                 || solicitud.jugadorId() == null || solicitud.cerdoId() == null) {
             throw new IllegalArgumentException("Debe indicar creeperId, jugadorId y cerdoId");
@@ -39,8 +64,10 @@ public class ExplosionService {
             throw new IllegalArgumentException("Las tres entidades deben tener identificadores distintos");
         }
 
-        // Solo bloquea los tres participantes, en un orden estable.
-        List<Entidad> entidades = repository.buscarParaExplosion(ids);
+        return ids;
+    }
+
+    private Participantes validarParticipantes(ExplosionRequest solicitud, List<Entidad> entidades) {
         Creeper creeper = buscar(entidades, solicitud.creeperId(), Creeper.class);
         Jugador jugador = buscar(entidades, solicitud.jugadorId(), Jugador.class);
         Cerdo cerdo = buscar(entidades, solicitud.cerdoId(), Cerdo.class);
@@ -48,13 +75,10 @@ public class ExplosionService {
             throw new IllegalStateException("Un creeper muerto no puede explotar");
         }
 
-        Vector3D centro = creeper.obtenerPosicion();
-        List<Resultado> resultados = List.of(aplicarDanio(centro, jugador), aplicarDanio(centro, cerdo));
-        creeper.finalizarExplosion();
+        return new Participantes(creeper, jugador, cerdo);
+    }
 
-        // JPA confirma los cambios de los tres participantes juntos.
-        return new ExplosionResponse(creeper.getId(), centro, RADIO, DANIO_MAXIMO,
-                creeper.getSalud(), resultados);
+    private record Participantes(Creeper creeper, Jugador jugador, Cerdo cerdo) {
     }
 
     private <T extends Entidad> T buscar(List<Entidad> entidades, UUID id, Class<T> clase) {

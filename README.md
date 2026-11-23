@@ -30,6 +30,57 @@ Spring Boot 3.5 segun la [documentacion de springdoc](https://springdoc.org/v2/f
 La configuracion general esta en `OpenApiConfig`; las rutas y el orden de la UI
 se configuran mediante propiedades `springdoc` en `application.properties`.
 
+## Validacion de explosion para Amir: sin efectos secundarios
+
+`POST /api/explosiones/validar` recibe el mismo `ExplosionRequest` que
+`POST /api/explosiones` y reutiliza sus validaciones compartidas en
+`ExplosionService`: UUID distintos, participantes existentes de tipo Creeper,
+Jugador y Cerdo, y Creeper vivo. El controller solo delega en el servicio.
+
+```json
+{
+  "creeperId": "UUID_DEL_CREEPER",
+  "jugadorId": "UUID_DEL_JUGADOR",
+  "cerdoId": "UUID_DEL_CERDO"
+}
+```
+
+Con `Content-Type: application/json`, una aprobacion devuelve HTTP 200:
+
+```json
+{
+  "aceptada": true,
+  "creeperId": "UUID_DEL_CREEPER",
+  "jugadorId": "UUID_DEL_JUGADOR",
+  "cerdoId": "UUID_DEL_CERDO"
+}
+```
+
+La operacion usa una transaccion `readOnly` y una consulta sin bloqueo de
+escritura. No aplica dano, no consume al Creeper, no altera su encendido ni su
+fuseTime, no elimina entidades, no guarda historial y no llama a Amir ni a Nico.
+Las consultas repetidas conservan H2. La aprobacion describe el estado actual;
+no reserva una explosion futura frente a cambios concurrentes.
+
+La regla actual no exige que el jugador o el cerdo esten vivos ni dentro del
+radio. La distancia determina el dano al ejecutar, no la aprobacion.
+
+| HTTP | Motivo | Ejemplo del cuerpo de error |
+| --- | --- | --- |
+| 400 | JSON/UUID invalidos o campos ausentes | `{"error":"Debe indicar creeperId, jugadorId y cerdoId"}` para un objeto JSON sin participantes |
+| 400 | Participantes repetidos | `{"error":"Las tres entidades deben tener identificadores distintos"}` |
+| 400 | Tipo incorrecto | `{"error":"La entidad UUID debe ser de tipo Creeper"}` |
+| 404 | Participante inexistente | `{"error":"No existe una entidad con id UUID"}` |
+| 409 | Creeper muerto | `{"error":"Un creeper muerto no puede explotar"}` |
+
+Un JSON malformado o un UUID que no se puede deserializar conserva el mensaje
+existente `{"error":"JSON inválido: revise los campos y el tipo de entidad"}`.
+OpenAPI y Swagger UI incluyen los esquemas y ejemplos completos. Los casos con
+UUID reales para compartir estan en [casos-validacion-amir.json](docs/casos-validacion-amir.json).
+
+`POST /api/explosiones` conserva el bloqueo transaccional y sus efectos. Las
+demoliciones y el resto de endpoints permanecen independientes de esta consulta.
+
 ## Demolicion coordinada: Sofi + Nico + Amir
 
 `POST /api/demoliciones` implementa el escenario aprobado para el trio:
@@ -83,7 +134,7 @@ devuelve HTTP 503 indicando ese resultado; no revierte la explosion ni la repite
 
 Para importar los endpoints en Insomnia, usar **Import > File** y seleccionar
 [`docs/minecraft-openapi.json`](docs/minecraft-openapi.json). El archivo incluye
-los 15 endpoints, ejemplos de solicitudes y las integraciones con Nico y Amir;
+los 16 endpoints, ejemplos de solicitudes y las integraciones con Nico y Amir;
 incluye los servidores `http://100.79.75.27:8081` y `http://localhost:8081`.
 Reiniciar la aplicacion despues de actualizar el
 codigo para que los endpoints nuevos esten disponibles. Los IDs de participantes
@@ -682,3 +733,243 @@ Las reglas de nombre, coordenadas y velocidad se validan en `Entidad`, `Vector3D
 y `Zombie`, respectivamente. `ZombieController` convierte las
 `IllegalArgumentException` del dominio en HTTP 400 con JSON `{"error":"mensaje"}`,
 sin duplicar esas reglas. Una velocidad negativa devuelve 400; una válida, 200.
+
+## POO-09: entrega del trio (23/11/2026)
+
+**Escenario propio:** Sofi registra una demolicion ejecutada por Amir solamente
+si Nico confirma que existe un explosivo de respaldo disponible.
+
+| Rol | Alumno | Repositorio | Commit acordado | Base URL | OpenAPI | Regla consumida |
+| --- | --- | --- | --- | --- | --- | --- |
+| A1 | Sofi | [Repositorio Sofi](https://github.com/Sofia-torres00/st-taller-git-2026) | [06a6fb297a5e9f9186d23b6dee7086fdaba94e30](https://github.com/Sofia-torres00/st-taller-git-2026/commit/06a6fb297a5e9f9186d23b6dee7086fdaba94e30) | http://100.79.75.27:8081 | [OpenAPI Sofi](http://100.79.75.27:8081/v3/api-docs) | Escenario propio: demolicion coordinada con respaldo disponible |
+| A2 | Nico | [Repositorio Nico](https://github.com/NicoRodriguez85677/NRodriguez-taller-git-2026) | [e9db16a93c925928734932e2759459a08747a1dd](https://github.com/NicoRodriguez85677/NRodriguez-taller-git-2026/commit/e9db16a93c925928734932e2759459a08747a1dd) | http://100.83.179.97:8080 | [OpenAPI Nico](http://100.83.179.97:8080/v3/api-docs) | Consultar si un mob puede explotar |
+| A3 | Amir | [Repositorio Amir](https://github.com/AmirDujak/adb-taller-git-2026) | [a6e6b14a3626f1cf6cfa48547fb4b1d5596a03fb](https://github.com/AmirDujak/adb-taller-git-2026/commit/a6e6b14a3626f1cf6cfa48547fb4b1d5596a03fb) | http://100.78.121.31:8080 | [OpenAPI Amir](http://100.78.121.31:8080/v3/api-docs) | Simular y aplicar una explosion |
+
+Estos roles corresponden a la entrega de Sofi. Cada alumno es A1 en su propia
+entrega: en la de Amir, Amir es A1, Sofi es A2 y Nico es A3.
+
+### Evidencia documental del round robin
+
+**Round robin: completo documentalmente.** Amir registra en su
+[README del commit acordado](https://github.com/AmirDujak/adb-taller-git-2026/blob/a6e6b14a3626f1cf6cfa48547fb4b1d5596a03fb/README.md)
+que consume `POST /api/explosiones/validar` de Sofi como su validacion A2.
+Nuestra operacion comprueba un Creeper, un Jugador y un Cerdo: exige tres UUID
+distintos, verifica que existan y tengan los tipos correctos y requiere que el
+Creeper este vivo. Solo evalua esas condiciones; no aplica dano, no modifica H2
+ni consume al Creeper.
+
+Esta evidencia acredita el mapa y la documentacion del consumo entre
+integrantes. El consumo A2/A3 desde el A1 de Sofi esta implementado y probado;
+la **demostracion coordinada en vivo sigue pendiente de ejecucion**. Son estados
+distintos: no se trata de un requisito de codigo faltante. Las pruebas HTTP en
+vivo requieren acceso a Tailscale y los servicios de los companeros encendidos.
+
+### Dos participantes independientes
+
+El explosivo de Nico representa el **respaldo**: su consulta debe confirmar
+`puedeExplotar=true`. El Creeper de Amir representa el **ejecutor**: aporta la
+explosion que se registra. En la demostracion ambos son Creepers, pero no son
+copias sincronizadas ni identificadores intercambiables: Nico usa UUID y Amir
+usa Long. La politica de Sofi exige disponer del respaldo antes de ejecutar.
+El codigo admite cualquier Explosivo valido de Nico, sin agregar una restriccion
+nueva de subtipo. No se consume ni se reserva el respaldo; la consulta es una
+fotografia de disponibilidad, sin garantia frente a cambios concurrentes.
+
+Sofi necesita a Nico para autorizar esa disponibilidad y a Amir para confirmar
+la ejecucion. Orden: Nico, Amir, persistencia local. En `demoliciones` guarda
+UUID propio, ambos IDs remotos, fecha y resultado JSON de Amir. No copia
+entidades ajenas a su tabla `entidades`.
+
+### Rechazos y efectos reales
+
+Los contratos reales consultados el 23/11/2026 describen:
+
+- Nico: `GET /api/minecraft/explosivos/{id}` es de lectura, sin detonacion.
+- Amir: `POST /api/lp3/explosiones/simular` aplica dano, modifica supervivientes,
+  elimina muertos y consume el Creeper. No es una validacion de lectura.
+- Amir tambien publica `POST /api/lp3/explosiones/previsualizar-integrada`, sin
+  efectos, pero exige `creeperId`, `jugadorExternoId` y `cerdoExternoId` y depende
+  de otro servicio externo. No reemplaza directamente el contrato actual de un
+  solo `creeperId`: hacerlo cambiaria el escenario aprobado. Conviene pedir a
+  Amir una validacion separada compatible con ese cuerpo si se requiere una
+  autorizacion sin ejecutar. No se afirma que esa variante ya exista.
+
+Si Nico rechaza, no se llama a Amir. Si Amir rechaza, no se registra una
+operacion. Ambos dejan iguales entidades, salud, inventarios e historial H2 de
+Sofi, comprobado con snapshots SQL completos en las pruebas.
+
+```json
+{"fuente":"A2","servicio":"Nico","mensaje":"Nico indica que el explosivo no puede explotar","status":409}
+```
+
+```json
+{"fuente":"A3","servicio":"Amir","mensaje":"Amir no confirmo la explosion (HTTP 409); verifique su estado antes de repetir","status":409}
+```
+
+El campo `status` coincide con el HTTP publico: 404/409 para rechazos remotos,
+502 para fallos de conexion/contrato y 504 para timeout. Una entrada local
+invalida conserva 400 y `{"error":"..."}`. Los mensajes pueden variar segun
+el rechazo. A1 garantiza que su propia H2 no cambia ante un rechazo.
+Una operacion remota ya ejecutada no puede deshacerse mediante
+la transaccion local de A1. Esta es una limitacion del flujo entre servicios,
+no un bug corregido ni una garantia de rollback remoto.
+Un timeout puede ocurrir despues
+de una detonacion; comprobar el estado en Amir antes de repetir. Una
+confirmacion seguida de fallo de persistencia local devuelve 503. No hay
+rollback distribuido ni reintentos automaticos de la detonacion.
+
+### Referencias y arranque reproducible
+
+La tabla identifica los commits acordados/publicados por el grupo. No se
+clonaron ni ejecutaron esos commits ajenos durante esta revision; los hashes
+no certifican la version de los procesos actualmente encendidos. El hash
+acordado de Sofi identifica la base publicada, no incorpora automaticamente
+los cambios locales posteriores que todavia requieren revision y commit.
+
+Los comandos siguientes proceden de los README consultados previamente;
+no constituyen una prueba de arranque de los nuevos hashes acordados.
+Se requiere Maven Wrapper y Java 21. Ejecutar cada
+bloque desde el repositorio correspondiente, en equipos separados y conectados
+a Tailscale. Seleccionar JDK 21 en `JAVA_HOME` antes de Maven.
+
+Sofi, puerto 8081:
+
+```powershell
+$env:NICO_BASE_URL = 'http://100.83.179.97:8080'
+$env:MINECRAFT_REMOTO_BASE_URL = 'http://100.78.121.31:8080'
+.\mvnw.cmd spring-boot:run
+```
+
+Spring permite sobrescribir `nico.base-url` y `minecraft-remoto.base-url` con
+esas variables. Sus timeouts configurados son 5s.
+
+Nico, puerto 8080 (variables documentadas en su README):
+
+```powershell
+$env:POO09_A2_URL = 'http://100.78.121.31:8080'
+$env:POO09_A3_URL = 'http://100.79.75.27:8081'
+.\mvnw.cmd spring-boot:run
+```
+
+Amir, puerto 8080 (su README usa `./mvnw`; en PowerShell usar `.\mvnw.cmd`):
+
+```powershell
+$env:SOFIA_API_BASE_URL = 'http://100.79.75.27:8081'
+$env:NICOLAS_API_BASE_URL = 'http://100.83.179.97:8080'
+.\mvnw.cmd spring-boot:run
+```
+
+Sofi consume las operaciones de dominio, nunca los orquestadores de sus
+companeros. Cada integrante es A1 en su propia entrega. La referencia para que
+Amir consuma nuestra validacion sigue siendo `/api/explosiones/validar` y
+[los casos con UUID](docs/casos-validacion-amir.json); verificar que aun existan
+antes de usarlos. Se elimino la referencia a un archivo de texto inexistente.
+
+### Insomnia y demostracion
+
+Importar **Import > File** y elegir
+[sofi-poo09.yaml](docs/insomnia/sofi-poo09.yaml). Es la unica coleccion nativa
+del escenario; el archivo OpenAPI anterior se conserva como contrato general.
+Incluye las nueve solicitudes numeradas. Configurar las variables:
+
+| Variable | Servicio | Valor del grupo |
+| --- | --- | --- |
+| `a1_base_url` | Sofi | `http://100.79.75.27:8081` |
+| `a2_base_url` | Nico | `http://100.83.179.97:8080` |
+| `a3_base_url` | Amir | `http://100.78.121.31:8080` |
+
+El archivo fue validado estructuralmente.
+La importación gráfica en Insomnia se verifica manualmente.
+La validacion estructural utilizo el esquema oficial Insomnia 5.1; no se
+ha confirmado todavia la importacion en la aplicacion.
+
+Los ejemplos estan en la descripcion de cada solicitud y en
+[ejemplos-poo09.json](docs/insomnia/ejemplos-poo09.json), disponibles offline.
+Son respuestas capturadas de las pruebas: A1 real, A2/A3 simulados y H2 en
+memoria. No se presentan como una demolicion ejecutada en los equipos del grupo
+ni como historial nativo de respuestas de Insomnia.
+
+Antes del caso feliz, coordinar con Amir un Creeper de prueba dedicado, apartado
+de otras entidades, y copiar su ID en `amir_ejecutor_id`. El valor inicial 0
+impide ejecutar accidentalmente un Creeper ajeno y devuelve 400 hasta cambiarlo.
+Para crearlo, su contrato acepta `POST /api/lp3/entidades` con:
+
+```json
+{"tipo":"CREEPER","nombre":"POO09DemoSofi","vida":20,"danoBase":0,"velocidadMovimiento":0,"hitbox":{"ancho":0.6,"alto":1.7,"profundidad":0.6},"sonidos":[],"drop":[],"cargado":false,"posicion":{"x":20000,"y":64,"z":0}}
+```
+
+Confirmar primero con Amir que esa zona esta libre. En Nico comprobar por GET
+que `nico_respaldo_id` devuelve `puedeExplotar=true` y `nico_rechazo_id` devuelve
+false. Los UUID iniciales se consultaron previamente, pero pueden desaparecer.
+Si hace falta un respaldo nuevo, su OpenAPI publica
+`POST /api/minecraft/mobs/creepers` con
+`{"x":20000,"y":64,"z":0,"tiempoDetonacion":3}`; copiar el UUID devuelto.
+No usar un Creeper valido como caso de rechazo. `amir_rechazo_id` contiene un
+Long positivo deliberadamente inexistente; comprobar su ausencia para obtener
+404 atribuido a A3. Un Creeper ya consumido tambien produce 404. El ejemplo
+offline A3 ilustra 409; ambos son rechazos validos identificados.
+
+1. Levantar Sofi con la version revisada; una sola instancia sobre su H2.
+2. Levantar Nico en su equipo.
+3. Levantar Amir en su equipo.
+4. Abrir los tres OpenAPI con solicitudes 01-03; preparar IDs y guardar una
+   respuesta inicial de `GET /api/demoliciones` como linea base.
+5. Ejecutar 04 una vez: esperar 201 con `id`, fecha, IDs y resultado de Amir.
+6. Ejecutar 05: localizar el mismo UUID y resultado; consultar tambien
+   `GET /api/demoliciones/{id}`. En H2 verificar
+   `SELECT * FROM DEMOLICIONES WHERE ID = 'UUID_DEVUELTO';`.
+   Esa respuesta completa es la nueva linea base; Amir consumio al ejecutor.
+7. Ejecutar 06 con el respaldo rechazado: esperar 409 A2/Nico. No llega a Amir.
+8. Ejecutar 07 y comparar toda la lista con 05: ningun dato local cambia.
+9. Ejecutar 08 con respaldo valido e ID inexistente de Amir: esperar 404
+   A3/Amir, sin registro nuevo.
+10. Ejecutar 09: comparar toda la lista con 05/07. Para volver a ejecutar el
+    caso feliz, crear otro ejecutor en Amir y actualizar la variable.
+
+```mermaid
+sequenceDiagram
+    participant I as Insomnia
+    participant S as Sofi A1
+    participant N as Nico A2
+    participant A as Amir A3
+    participant H as H2 Sofi
+    I->>S: POST /api/demoliciones
+    S->>N: GET /api/minecraft/explosivos/{id}
+    N-->>S: puedeExplotar
+    alt Nico rechaza
+        S-->>I: Error A2/Nico, sin escritura
+    else Nico acepta
+        S->>A: POST /api/lp3/explosiones/simular
+        A-->>S: Resultado o rechazo
+        alt Amir rechaza
+            S-->>I: Error A3/Amir, sin escritura
+        else Amir confirma
+            S->>H: Guardar demolicion y resultado
+            H-->>S: UUID persistido
+            S-->>I: 201 y Location
+        end
+    end
+```
+
+### Verificacion de este cierre
+
+Resultado tecnico ya registrado de `.\mvnw.cmd clean test` con JDK 21:
+**160 tests, 0 failures, 0 errors, 0 skipped**. Las pruebas cubren aprobacion
+persistida, atribucion de rechazos y snapshots completos sin cambios locales.
+No se volvieron a ejecutar tests para esta actualizacion exclusivamente documental.
+
+| Criterio POO-09 | Estado | Evidencia |
+| --- | --- | --- |
+| OpenAPI | Completo | Contrato y Swagger de Sofi, con pruebas de documentacion |
+| Round robin | Completo documentalmente | Mapa del grupo y consumo de la validacion de Sofi documentado por Amir |
+| Consumo A2/A3 | Completo | Clientes Nico/Amir y flujo A2 -> A3 implementados y probados |
+| Escenario persistido | Verificado en pruebas | Aprobacion guardada en H2 y consulta posterior; rechazos sin cambios locales |
+
+Pendientes de evidencia, no de implementacion:
+
+- Confirmar manualmente la importacion grafica en Insomnia.
+- Ejecutar y registrar la demostracion coordinada en vivo con los tres servicios.
+
+No se ejecuto una nueva detonacion real remota durante este cierre.
+Esta actualizacion solo modifica documentacion. No se hicieron operaciones
+git add, commit ni push.

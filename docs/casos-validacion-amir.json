@@ -1,0 +1,79 @@
+{
+  "baseUrl": "http://100.79.75.27:8081",
+  "endpoint": "/api/explosiones/validar",
+  "method": "POST",
+  "contentType": "application/json",
+  "openapi": "http://100.79.75.27:8081/v3/api-docs",
+  "swaggerUi": "http://100.79.75.27:8081/swagger-ui/index.html",
+  "participantes": {
+    "creeperVivoId": "3257d1ac-73b6-421e-801a-0dbffd67ba18",
+    "creeperMuertoId": "225c8ba6-279b-4f7c-8531-0cda58db456d",
+    "jugadorId": "4cf40b15-4f36-4a94-be20-adfe6ecac178",
+    "cerdoId": "5e889821-046a-466a-97fb-a9fadb124a8a"
+  },
+  "casos": [
+    {
+      "nombre": "Aceptado",
+      "request": {
+        "creeperId": "3257d1ac-73b6-421e-801a-0dbffd67ba18",
+        "jugadorId": "4cf40b15-4f36-4a94-be20-adfe6ecac178",
+        "cerdoId": "5e889821-046a-466a-97fb-a9fadb124a8a"
+      },
+      "expectedStatus": 200,
+      "expectedResponse": {
+        "aceptada": true,
+        "creeperId": "3257d1ac-73b6-421e-801a-0dbffd67ba18",
+        "jugadorId": "4cf40b15-4f36-4a94-be20-adfe6ecac178",
+        "cerdoId": "5e889821-046a-466a-97fb-a9fadb124a8a"
+      }
+    },
+    {
+      "nombre": "Rechazado: Creeper muerto",
+      "request": {
+        "creeperId": "225c8ba6-279b-4f7c-8531-0cda58db456d",
+        "jugadorId": "4cf40b15-4f36-4a94-be20-adfe6ecac178",
+        "cerdoId": "5e889821-046a-466a-97fb-a9fadb124a8a"
+      },
+      "expectedStatus": 409,
+      "expectedResponse": {
+        "error": "Un creeper muerto no puede explotar"
+      }
+    },
+    {
+      "nombre": "Rechazado: IDs repetidos",
+      "request": {
+        "creeperId": "3257d1ac-73b6-421e-801a-0dbffd67ba18",
+        "jugadorId": "4cf40b15-4f36-4a94-be20-adfe6ecac178",
+        "cerdoId": "4cf40b15-4f36-4a94-be20-adfe6ecac178"
+      },
+      "expectedStatus": 400,
+      "expectedResponse": {
+        "error": "Las tres entidades deben tener identificadores distintos"
+      }
+    },
+    {
+      "nombre": "Rechazado: participante inexistente",
+      "request": {
+        "creeperId": "7eb4d73c-394d-4270-9d33-ee69a84e0c9e",
+        "jugadorId": "4cf40b15-4f36-4a94-be20-adfe6ecac178",
+        "cerdoId": "5e889821-046a-466a-97fb-a9fadb124a8a"
+      },
+      "expectedStatus": 404,
+      "expectedResponse": {
+        "error": "No existe una entidad con id 7eb4d73c-394d-4270-9d33-ee69a84e0c9e"
+      }
+    }
+  ],
+  "verificacion": {
+    "peticionesValidacion": 16,
+    "entidadesSinCambios": true,
+    "historialSinCambios": true,
+    "entidadesPreviasConservadas": true,
+    "participantesCreadosDurantePreparacion": [
+      "3257d1ac-73b6-421e-801a-0dbffd67ba18",
+      "225c8ba6-279b-4f7c-8531-0cda58db456d",
+      "4cf40b15-4f36-4a94-be20-adfe6ecac178",
+      "5e889821-046a-466a-97fb-a9fadb124a8a"
+    ]
+  }
+}

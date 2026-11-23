@@ -2,17 +2,17 @@
   "openapi": "3.1.0",
   "info": {
     "title": "API REST - Minecraft",
-    "description": "API Minecraft de Sofi: entidades, explosiones, combate temporal con Amir y demolicion coordinada con Nico y Amir. POST /api/demoliciones aplica dano real en Amir y registra en H2 solo las explosiones confirmadas.",
+    "description": "Gestion de entidades, simulacion de explosiones y consulta de objetos externos.",
     "version": "1.0.0"
   },
   "servers": [
     {
       "url": "http://100.79.75.27:8081",
-      "description": "Sofi - red del trio"
+      "description": "Sofía - red del trío"
     },
     {
       "url": "http://localhost:8081",
-      "description": "Sofi - entorno local"
+      "description": "Sofía - local"
     }
   ],
   "tags": [
@@ -70,8 +70,7 @@
             "schema": {
               "type": "string",
               "format": "uuid"
-            },
-            "example": "11111111-1111-1111-1111-111111111111"
+            }
           }
         ],
         "responses": {
@@ -109,8 +108,7 @@
             "schema": {
               "type": "string",
               "format": "uuid"
-            },
-            "example": "11111111-1111-1111-1111-111111111111"
+            }
           }
         ],
         "requestBody": {
@@ -118,19 +116,6 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/EntidadRequest"
-              },
-              "example": {
-                "nombre": "Zombie1",
-                "tipo": "ZOMBIE",
-                "salud": 20,
-                "ubicacion": {
-                  "x": 0,
-                  "y": 64,
-                  "z": 0
-                },
-                "atributos": {
-                  "velocidad": 1.5
-                }
               }
             }
           },
@@ -170,8 +155,7 @@
             "schema": {
               "type": "string",
               "format": "uuid"
-            },
-            "example": "11111111-1111-1111-1111-111111111111"
+            }
           }
         ],
         "responses": {
@@ -200,11 +184,6 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ExplosionRequest"
-              },
-              "example": {
-                "creeperId": "11111111-1111-4111-8111-111111111111",
-                "jugadorId": "22222222-2222-4222-8222-222222222222",
-                "cerdoId": "33333333-3333-4333-8333-333333333333"
               }
             }
           },
@@ -229,6 +208,111 @@
           },
           "409": {
             "$ref": "#/components/responses/EstadoInvalido"
+          }
+        }
+      }
+    },
+    "/api/explosiones/validar": {
+      "post": {
+        "tags": [
+          "Explosiones"
+        ],
+        "summary": "Validar una explosion sin efectos secundarios",
+        "description": "Solo lectura: no modifica H2, no aplica dano, no consume ni mata al Creeper, no elimina entidades ni guarda historial. Reutiliza las mismas validaciones que POST /api/explosiones: tres UUID distintos, participantes existentes de tipo Creeper, Jugador y Cerdo y Creeper vivo. No requiere que el jugador y el cerdo esten vivos ni que esten dentro del radio. No llama a Amir ni a Nicolas. Repetir la consulta conserva la base de datos. La aprobacion describe el estado consultado y no reserva una ejecucion futura.",
+        "operationId": "validar",
+        "requestBody": {
+          "description": "El mismo cuerpo que recibe POST /api/explosiones",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExplosionRequest"
+              },
+              "examples": {
+                "Participantes": {
+                  "description": "Participantes",
+                  "value": {
+                    "creeperId": "11111111-1111-4111-8111-111111111111",
+                    "jugadorId": "22222222-2222-4222-8222-222222222222",
+                    "cerdoId": "33333333-3333-4333-8333-333333333333"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Explosion aceptada; H2 permanece sin cambios",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidacionExplosionResponse"
+                },
+                "example": {
+                  "aceptada": true,
+                  "creeperId": "11111111-1111-4111-8111-111111111111",
+                  "jugadorId": "22222222-2222-4222-8222-222222222222",
+                  "cerdoId": "33333333-3333-4333-8333-333333333333"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "JSON o UUID invalidos, campos ausentes, IDs repetidos o tipos incorrectos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "examples": {
+                  "IDs repetidos": {
+                    "description": "IDs repetidos",
+                    "value": {
+                      "error": "Las tres entidades deben tener identificadores distintos"
+                    }
+                  },
+                  "Tipo incorrecto": {
+                    "description": "Tipo incorrecto",
+                    "value": {
+                      "error": "La entidad 11111111-1111-4111-8111-111111111111 debe ser de tipo Creeper"
+                    }
+                  },
+                  "JSON o UUID invalido": {
+                    "description": "JSON o UUID invalido",
+                    "value": {
+                      "error": "JSON invÃ¡lido: revise los campos y el tipo de entidad"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Alguna entidad no existe",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "No existe una entidad con id 11111111-1111-4111-8111-111111111111"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "El estado del Creeper impide explotar",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                },
+                "example": {
+                  "error": "Un creeper muerto no puede explotar"
+                }
+              }
+            }
           }
         }
       }
@@ -269,19 +353,6 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/EntidadRequest"
-              },
-              "example": {
-                "nombre": "Zombie1",
-                "tipo": "ZOMBIE",
-                "salud": 20,
-                "ubicacion": {
-                  "x": 0,
-                  "y": 64,
-                  "z": 0
-                },
-                "atributos": {
-                  "velocidad": 1.5
-                }
               }
             }
           },
@@ -348,10 +419,6 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/DemolicionRequest"
-              },
-              "example": {
-                "explosivoNicoId": "b26bb20b-a15f-43ed-b4a9-f2c19480516e",
-                "creeperAmirId": 25
               }
             }
           },
@@ -369,19 +436,87 @@
             }
           },
           "400": {
-            "description": "Solicitud invalida o rechazada por Amir"
+            "description": "Solicitud local invalida (error) o rechazo de Amir (fuente A3)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorServicioRemoto"
+                    },
+                    {}
+                  ]
+                },
+                "examples": {
+                  "Solicitud local": {
+                    "description": "Solicitud local",
+                    "value": {
+                      "error": "Debe indicar explosivoNicoId y creeperAmirId positivo"
+                    }
+                  }
+                }
+              }
+            }
           },
           "404": {
-            "description": "Explosivo de Nico o Creeper de Amir inexistente"
+            "description": "Entidad remota inexistente; fuente y servicio identifican el origen",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorServicioRemoto"
+                }
+              }
+            }
           },
           "409": {
-            "description": "Nico no autoriza el explosivo o Amir rechaza la explosion"
+            "description": "Rechazo de negocio identificado por A2/Nico o A3/Amir",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorServicioRemoto"
+                },
+                "examples": {
+                  "Nico": {
+                    "description": "Nico",
+                    "value": {
+                      "fuente": "A2",
+                      "servicio": "Nico",
+                      "mensaje": "Nico indica que el explosivo no puede explotar",
+                      "status": 409
+                    }
+                  },
+                  "Amir": {
+                    "description": "Amir",
+                    "value": {
+                      "fuente": "A3",
+                      "servicio": "Amir",
+                      "mensaje": "Amir no confirmo la explosion (HTTP 409); verifique su estado antes de repetir",
+                      "status": 409
+                    }
+                  }
+                }
+              }
+            }
           },
           "502": {
-            "description": "Fallo HTTP, de conexion o de contrato remoto; verificar Amir antes de repetir"
+            "description": "Fallo HTTP, de conexion o contrato, con origen A2/A3. Verificar Amir antes de repetir",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorServicioRemoto"
+                }
+              }
+            }
           },
           "504": {
-            "description": "Tiempo de espera agotado; el resultado en Amir puede ser incierto"
+            "description": "Timeout identificado por fuente y servicio; el efecto en Amir puede ser incierto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorServicioRemoto"
+                }
+              }
+            }
           },
           "503": {
             "description": "Amir confirmo la explosion pero fallo el registro en H2"
@@ -402,11 +537,6 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/CombateIntegradoRequest"
-              },
-              "example": {
-                "atacanteId": "11111111-1111-1111-1111-111111111111",
-                "tipoObjetivo": "ZOMBIE",
-                "golpes": 5
               }
             }
           },
@@ -961,6 +1091,35 @@
           }
         }
       },
+      "ValidacionExplosionResponse": {
+        "type": "object",
+        "description": "Aprobacion de las reglas actuales de explosion. No aplica dano ni modifica H2.",
+        "properties": {
+          "aceptada": {
+            "type": "boolean",
+            "description": "Siempre true cuando se cumplen las reglas",
+            "example": true
+          },
+          "creeperId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "jugadorId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "cerdoId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "aceptada",
+          "cerdoId",
+          "creeperId",
+          "jugadorId"
+        ]
+      },
       "DemolicionRequest": {
         "type": "object",
         "description": "Identificadores independientes de un explosivo en Nico y un Creeper en Amir",
@@ -981,6 +1140,33 @@
           "creeperAmirId",
           "explosivoNicoId"
         ]
+      },
+      "ErrorServicioRemoto": {
+        "type": "object",
+        "description": "Origen del rechazo o fallo remoto; status coincide con el codigo HTTP de Sofi",
+        "properties": {
+          "fuente": {
+            "type": "string",
+            "enum": [
+              "A2",
+              "A3"
+            ],
+            "example": "A2"
+          },
+          "servicio": {
+            "type": "string",
+            "example": "Nico"
+          },
+          "mensaje": {
+            "type": "string",
+            "example": "Nico indica que el explosivo no puede explotar"
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "example": 409
+          }
+        }
       },
       "CreeperExplosionAmir": {
         "type": "object",
@@ -1355,9 +1541,5 @@
         }
       }
     }
-  },
-  "externalDocs": {
-    "description": "OpenAPI del proyecto de Amir",
-    "url": "http://100.78.121.31:8080/v3/api-docs"
   }
 }

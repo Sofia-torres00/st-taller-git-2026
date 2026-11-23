@@ -54,6 +54,33 @@ Amir; no escribe entidades persistidas en ninguno de los dos proyectos.
 El comportamiento remoto se ejecuta antes de aplicar el danio solicitado; por
 ejemplo, el Creeper temporal de Amir puede explotar durante ese comportamiento.
 
+## Validacion de Sofi consumible por Amir como A2
+
+```mermaid
+sequenceDiagram
+    participant Amir as Amir - escenario POO-09
+    participant Controller as Sofi - POST /api/explosiones/validar
+    participant Servicio as ExplosionService.validar
+    participant H2 as H2 de Sofi
+    Amir->>Controller: creeperId, jugadorId, cerdoId (UUID)
+    Controller->>Servicio: ExplosionRequest
+    Servicio->>H2: Leer participantes sin bloqueo de escritura
+    H2-->>Servicio: Entidades existentes
+    Note over Servicio: Validacion compartida con la explosion real
+    alt UUID distintos, tipos correctos y Creeper vivo
+        Servicio-->>Controller: aceptada=true y los tres UUID
+        Controller-->>Amir: HTTP 200
+    else Participantes o estado invalidos
+        Servicio-->>Controller: Misma excepcion que la explosion real
+        Controller-->>Amir: HTTP 400, 404 o 409 con error
+    end
+    Note over Servicio,H2: Sin dano, escrituras, eliminaciones ni historial
+```
+
+Este endpoint de Sofi no hace llamadas salientes a Amir ni a Nico. Solo valida el
+estado consultado; `POST /api/explosiones` sigue siendo la operacion con efectos.
+Los UUID y respuestas esperadas estan en `docs/para-amir-validacion.txt`.
+
 ## Demolicion coordinada del trio
 
 ```mermaid

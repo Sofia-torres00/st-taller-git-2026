@@ -37,18 +37,18 @@ public class AmirExplosionClient {
                         case 409 -> HttpStatus.CONFLICT;
                         default -> HttpStatus.BAD_GATEWAY;
                     };
-                    return Mono.error(new ResponseStatusException(estado,
+                    return Mono.error(new ServicioRemotoException("A3", "Amir", estado,
                             "Amir no confirmo la explosion (HTTP " + codigo + "); verifique su estado antes de repetir"));
                 })
                 .bodyToMono(ExplosionAmirResponse.class)
                 .switchIfEmpty(Mono.error(invalida()))
                 .map(resultado -> validar(creeperId, resultado))
                 .timeout(timeout)
-                .onErrorMap(TimeoutException.class, exception -> new ResponseStatusException(
+                .onErrorMap(TimeoutException.class, exception -> new ServicioRemotoException("A3", "Amir",
                         HttpStatus.GATEWAY_TIMEOUT,
                         "Amir no respondio a tiempo; la explosion puede haberse aplicado. Verifique antes de repetir", exception))
                 .onErrorMap(exception -> !(exception instanceof ResponseStatusException), exception ->
-                        new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+                        new ServicioRemotoException("A3", "Amir", HttpStatus.BAD_GATEWAY,
                                 "No se pudo confirmar la respuesta de Amir; verifique su estado antes de repetir", exception))
                 .block();
     }
@@ -73,7 +73,7 @@ public class AmirExplosionClient {
     }
 
     private ResponseStatusException invalida() {
-        return new ResponseStatusException(HttpStatus.BAD_GATEWAY,
+        return new ServicioRemotoException("A3", "Amir", HttpStatus.BAD_GATEWAY,
                 "Respuesta de Amir incompleta o no confirmable; verifique su estado antes de repetir");
     }
 }

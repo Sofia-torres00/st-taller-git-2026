@@ -38,7 +38,7 @@ public class DemolicionService {
         }
         var disponibilidad = nico.consultar(solicitud.explosivoNicoId());
         if (!Boolean.TRUE.equals(disponibilidad.puedeExplotar())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Nico indica que el explosivo no puede explotar");
+            throw new ServicioRemotoException("A2", "Nico", HttpStatus.CONFLICT, "Nico indica que el explosivo no puede explotar");
         }
         // No se mantiene una transaccion H2 durante las llamadas HTTP ni se reintenta el POST de Amir.
         var resultado = amir.simular(solicitud.creeperAmirId());
