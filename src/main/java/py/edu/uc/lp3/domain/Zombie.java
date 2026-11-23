@@ -28,7 +28,12 @@ public class Zombie extends MobHostil implements UICapable {
     @Override
     public void atacarObjetivo(Entidad objetivo) {
         fijarObjetivo(objetivo);
-        objetivo.tomarDanio(getFuerzaAtaque() + 1);
+        objetivo.tomarDanio(calcularDanioAtaque());
+    }
+
+    @Override
+    public double calcularDanioAtaque() {
+        return getFuerzaAtaque() + 1;
     }
 
     public void prenderFuego() {

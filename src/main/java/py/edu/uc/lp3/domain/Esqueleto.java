@@ -26,15 +26,20 @@ public class Esqueleto extends MobHostil {
         if (tieneArco) {
             dispararFlecha();
         } else {
-            objetivo.tomarDanio(getFuerzaAtaque());
+            objetivo.tomarDanio(calcularDanioAtaque());
         }
     }
 
     public void dispararFlecha() {
         Entidad objetivo = buscarObjetivo();
         if (tieneArco && objetivo != null) {
-            objetivo.tomarDanio(getFuerzaAtaque() + 2);
+            objetivo.tomarDanio(calcularDanioAtaque());
         }
+    }
+
+    @Override
+    public double calcularDanioAtaque() {
+        return getFuerzaAtaque() + (tieneArco ? 2 : 0);
     }
 
     public void perderArco() {

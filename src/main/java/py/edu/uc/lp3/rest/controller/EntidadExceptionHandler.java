@@ -11,7 +11,8 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 
 import py.edu.uc.lp3.service.EntidadNoEncontradaException;
 
-@RestControllerAdvice(assignableTypes = {EntidadController.class, ExplosionController.class})
+@RestControllerAdvice(assignableTypes = {EntidadController.class, ExplosionController.class,
+        CombateIntegradoController.class, DemolicionController.class})
 public class EntidadExceptionHandler {
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<Map<String, String>> estadoInvalido(IllegalStateException exception) {

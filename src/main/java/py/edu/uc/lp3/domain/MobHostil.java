@@ -25,7 +25,11 @@ public abstract class MobHostil extends SerVivo {
 
     public void atacarObjetivo(Entidad objetivo) {
         fijarObjetivo(objetivo);
-        objetivo.tomarDanio(fuerzaAtaque);
+        objetivo.tomarDanio(calcularDanioAtaque());
+    }
+
+    public double calcularDanioAtaque() {
+        return fuerzaAtaque;
     }
 
     public Entidad buscarObjetivo() {

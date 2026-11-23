@@ -4,6 +4,165 @@
 -Github: Sofia-torres00
 -Comision: CYT646 F 
 
+## OpenAPI y Swagger UI
+
+El proyecto usa el puerto 8081. Requiere Java 21; `JAVA_HOME` debe apuntar al JDK
+21 tambien al ejecutar Maven. Iniciar una sola instancia desde PowerShell:
+
+```powershell
+.\mvnw.cmd spring-boot:run
+```
+
+Para detenerla y liberar el archivo de H2, usar `Ctrl+C` en esa terminal.
+
+- **Swagger UI:** http://localhost:8081/swagger-ui.html
+- **OpenAPI JSON:** http://localhost:8081/v3/api-docs
+- **OpenAPI YAML:** http://localhost:8081/v3/api-docs.yaml
+
+Swagger UI permite consultar y probar todos los endpoints: inicio, entidades,
+explosiones, combates integrados, objetos externos, zombies, comportamientos y sonidos. Cada operacion
+incluye su descripcion, parametros, esquemas de entrada/salida y codigos HTTP.
+Los ejemplos de explosion usan UUID ilustrativos: reemplazarlos por IDs de
+entidades creadas con `POST /api/entidades`.
+
+La integracion usa `springdoc-openapi-starter-webmvc-ui` 2.10.0, compatible con
+Spring Boot 3.5 segun la [documentacion de springdoc](https://springdoc.org/v2/faq.html#what-is-the-compatibility-matrix-of-springdoc-openapi-with-spring-boot).
+La configuracion general esta en `OpenApiConfig`; las rutas y el orden de la UI
+se configuran mediante propiedades `springdoc` en `application.properties`.
+
+## Demolicion coordinada: Sofi + Nico + Amir
+
+`POST /api/demoliciones` implementa el escenario aprobado para el trio:
+
+1. Sofi consulta `GET /api/minecraft/explosivos/{id}` de Nico y exige una respuesta
+   valida con `puedeExplotar=true`. Un rechazo o error detiene el flujo.
+2. Sofi envia a Amir `POST /api/lp3/explosiones/simular` con unicamente
+   `{"creeperId": ...}`. Amir valida y aplica su explosion sobre sus entidades.
+3. Con HTTP 200 y una confirmacion valida de Amir, Sofi guarda el resultado en la
+   tabla H2 `demoliciones` y responde HTTP 201 con la ubicacion del registro.
+
+```json
+{
+  "explosivoNicoId": "b26bb20b-a15f-43ed-b4a9-f2c19480516e",
+  "creeperAmirId": 25
+}
+```
+
+Los IDs son independientes y deben existir en sus respectivos servidores. Los
+del ejemplo se comprobaron mediante GET; su disponibilidad puede cambiar. Esta
+operacion aplica dano real en Amir y elimina su Creeper. La consulta de Nico no
+detona su explosivo.
+
+- `GET /api/demoliciones`: historial local ordenado del mas reciente al mas antiguo.
+- `GET /api/demoliciones/{id}`: resultado guardado por su UUID de Sofi.
+
+```properties
+nico.base-url=http://100.83.179.97:8080
+nico.timeout=5s
+minecraft-remoto.base-url=http://100.78.121.31:8080
+minecraft-remoto.timeout=5s
+```
+
+Contratos utilizados, sin copiar codigo de los companeros:
+[Nico](http://100.83.179.97:8080/v3/api-docs) y
+[Amir](http://100.78.121.31:8080/v3/api-docs). Las copias consultadas estan en
+[`docs/contracts/nico-openapi.json`](docs/contracts/nico-openapi.json) y
+[`docs/contracts/amir-openapi.json`](docs/contracts/amir-openapi.json).
+
+HTTP 400 indica datos invalidos; 404, una entidad o registro inexistente; 409,
+un rechazo de negocio; 502, un error HTTP o de contrato externo; 504, un timeout.
+Solo se guardan operaciones confirmadas: los rechazos y resultados inciertos no
+crean registros. Los clientes no reintentan automaticamente la detonacion.
+
+No hay una transaccion distribuida entre Amir y H2. Si Amir no responde o devuelve
+una respuesta no confirmable, su explosion puede haberse aplicado: consultar su
+estado antes de repetir. Si Amir confirma y luego falla el registro local, Sofi
+devuelve HTTP 503 indicando ese resultado; no revierte la explosion ni la repite.
+
+## Diagrama de integraciones
+
+Para importar los endpoints en Insomnia, usar **Import > File** y seleccionar
+[`docs/minecraft-openapi.json`](docs/minecraft-openapi.json). El archivo incluye
+los 15 endpoints, ejemplos de solicitudes y las integraciones con Nico y Amir;
+incluye los servidores `http://100.79.75.27:8081` y `http://localhost:8081`.
+Reiniciar la aplicacion despues de actualizar el
+codigo para que los endpoints nuevos esten disponibles. Los IDs de participantes
+del ejemplo de explosion deben reemplazarse por IDs existentes de los tipos
+correspondientes.
+
+El [diagrama de integraciones](docs/integraciones.md) muestra las llamadas entre
+el proyecto de Sofia, el proyecto Minecraft de **Amir** y la API de objetos,
+con las reglas que aporta cada uno y sus endpoints de referencia.
+
+## Combate integrado con el proyecto Minecraft de Amir
+
+`POST /api/combates/integrados` combina las reglas locales de ataque con la
+demostracion `GET /entidad/{tipo}?danio=...` del
+[proyecto de Amir](http://100.78.121.31:8080/swagger-ui/index.html).
+El contrato consultado esta en su [OpenAPI](http://100.78.121.31:8080/v3/api-docs).
+
+1. Busca el atacante por su UUID local y exige que sea un `MobHostil` vivo.
+2. Reutiliza `calcularDanioAtaque()`, el mismo calculo que usa `atacarObjetivo`:
+   Zombie = 4; Esqueleto con arco = 4, sin arco = 2; Enderman = 7; Creeper = 0.
+   La explosion del Creeper sigue siendo una operacion distinta.
+3. Multiplica el danio por los golpes indicados (1 a 100; por defecto 1).
+4. Consulta la entidad temporal remota con WebClient. El otro proyecto ejecuta
+   su comportamiento y aplica sus reglas de recibir danio, vida final y muerte.
+5. Devuelve el calculo local junto con el estado remoto y los drops si murio.
+
+La operacion no modifica entidades persistidas de ninguno de los proyectos.
+El endpoint remoto de demostracion puede ejecutar efectos del comportamiento:
+por ejemplo, el Creeper temporal explota antes de recibir el danio solicitado.
+
+Ejemplo con el Zombie1 existente (si se elimina, reemplazar el UUID):
+
+```json
+{
+  "atacanteId": "11111111-1111-1111-1111-111111111111",
+  "tipoObjetivo": "ZOMBIE",
+  "golpes": 5
+}
+```
+
+El Zombie local envia 20 de danio: 5 golpes de 4. El Zombie temporal remoto
+termina con vida 0 y suelta `carne_podrida`. Tambien se admiten como objetivos
+`ESQUELETO`, `LOBO`, `OVEJA`, `ALDEANO` y `CREEPER`.
+
+```powershell
+Invoke-RestMethod -Method Post -Uri 'http://localhost:8081/api/combates/integrados' -ContentType 'application/json' -Body '{"atacanteId":"11111111-1111-1111-1111-111111111111","tipoObjetivo":"ZOMBIE","golpes":5}'
+```
+
+```properties
+minecraft-remoto.base-url=http://100.78.121.31:8080
+minecraft-remoto.timeout=5s
+```
+
+HTTP 400 indica datos invalidos o un atacante no hostil; 404, un UUID local
+inexistente; 409, un atacante muerto o danio incompatible con el contrato remoto;
+502, un fallo HTTP, de conexion o de respuesta remota; 504, tiempo de espera
+agotado. El servidor remoto debe ser accesible desde la red de la aplicacion.
+
+## Consulta de objetos con WebClient
+
+`GET /api/objetos` consulta `https://api.restful-api.dev/objects` mediante
+`ObjetoService` y devuelve la lista de objetos con los campos `id`, `name` y
+`data`. El campo `data` admite propiedades variables y valores nulos.
+
+```powershell
+Invoke-RestMethod -Method Get -Uri 'http://localhost:8081/api/objetos'
+```
+
+La URL base y el tiempo limite se configuran en `application.properties`:
+
+```properties
+restful-api.base-url=https://api.restful-api.dev
+restful-api.timeout=10s
+```
+
+El controlador devuelve HTTP 502 si falla la conexion o la API externa responde
+con un error HTTP, y HTTP 504 si se supera el tiempo limite. La consulta usa
+`Mono` sin bloquear el hilo del controlador y no guarda los objetos en H2.
+
 ## Regla de negocio: simulación de explosiones
 
 La operación recibe los identificadores de tres participantes: un `Creeper`,
@@ -65,7 +224,7 @@ un jugador a 1.5 bloques y un cerdo a 3 bloques. Se usa un centro en X=1000
 para separar el ejemplo de los personajes creados anteriormente cerca de X=0:
 
 ```powershell
-$base = 'http://localhost:8080'
+$base = 'http://localhost:8081'
 $creeper = Invoke-RestMethod -Method Post -Uri "$base/api/entidades" -ContentType 'application/json' -Body '{"nombre":"CreeperDemo","tipo":"CREEPER","salud":20,"ubicacion":{"x":1000,"y":64,"z":0}}'
 $jugador = Invoke-RestMethod -Method Post -Uri "$base/api/entidades" -ContentType 'application/json' -Body '{"nombre":"JugadorDemo","tipo":"JUGADOR","salud":20,"ubicacion":{"x":1001.5,"y":64,"z":0}}'
 $cerdo = Invoke-RestMethod -Method Post -Uri "$base/api/entidades" -ContentType 'application/json' -Body '{"nombre":"CerdoDemo","tipo":"CERDO","salud":10,"ubicacion":{"x":1003,"y":64,"z":0}}'
@@ -139,7 +298,7 @@ los constructores del dominio, en el servidor.
 | DELETE | `/api/entidades/{id}` | Eliminar: 204 o 404 |
 
 Para crear una entidad, enviar este JSON con `Content-Type: application/json` a
-`POST http://localhost:8080/api/entidades`. Para actualizar, enviar los mismos
+`POST http://localhost:8081/api/entidades`. Para actualizar, enviar los mismos
 campos a `PUT /api/entidades/{id}` con el UUID devuelto al crearla:
 
 ```json
@@ -155,7 +314,7 @@ campos a `PUT /api/entidades/{id}` con el UUID devuelto al crearla:
 Ejemplo en PowerShell, con la aplicación en ejecución:
 
 ```powershell
-$base = 'http://localhost:8080/api/entidades'
+$base = 'http://localhost:8081/api/entidades'
 $datos = '{"nombre":"Zombie1","tipo":"ZOMBIE","salud":20,"ubicacion":{"x":0,"y":64,"z":0}}'
 $entidad = Invoke-RestMethod -Method Post -Uri $base -ContentType 'application/json' -Body $datos
 Invoke-RestMethod -Uri $base
@@ -213,7 +372,7 @@ SELECT DTYPE, ID, NOMBRE, TIPO, SALUD, VELOCIDAD, FUERZA_ATAQUE, MONTABLE, X, Y,
 FROM ENTIDADES;
 ```
 
-La consola de desarrollo está en `http://localhost:8080/h2-console`:
+La consola de desarrollo está en `http://localhost:8081/h2-console`:
 
 - JDBC URL: `jdbc:h2:file:./data/entidades`
 - Usuario: `sa`

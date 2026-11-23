@@ -13,16 +13,32 @@ import py.edu.uc.lp3.domain.TipoEntidad;
 import py.edu.uc.lp3.domain.Vector3D;
 import py.edu.uc.lp3.domain.Zombie;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
+@Tag(name = "Zombies", description = "Construccion de un zombie de ejemplo sin persistirlo")
 public class ZombieController {
 
     @GetMapping("/api/zombie")
+    @Operation(summary = "Construir un zombie con parametros de URL",
+            description = "El nombre no puede estar vacio; las coordenadas deben ser finitas y la velocidad no negativa.")
+    @ApiResponse(responseCode = "200", description = "Zombie construido; no se guarda en H2")
+    @ApiResponse(responseCode = "400", description = "Parametros ausentes, de tipo incorrecto o rechazados por el dominio",
+            content = @Content(mediaType = "application/json", schema = @Schema(type = "object"),
+                    examples = @ExampleObject(value = "{\"error\":\"La velocidad debe ser finita y no negativa\"}")))
     public ZombieResponse crearZombie(
-            @RequestParam String nombre,
-            @RequestParam double x,
-            @RequestParam double y,
-            @RequestParam double z,
-            @RequestParam double velocidad) {
+            @Parameter(description = "Nombre del zombie", example = "Zombie1") @RequestParam String nombre,
+            @Parameter(description = "Coordenada X", example = "0") @RequestParam double x,
+            @Parameter(description = "Coordenada Y", example = "64") @RequestParam double y,
+            @Parameter(description = "Coordenada Z", example = "0") @RequestParam double z,
+            @Parameter(description = "Velocidad finita y no negativa", example = "1.5",
+                    schema = @Schema(minimum = "0")) @RequestParam double velocidad) {
         Zombie zombie = new Zombie(nombre, new Vector3D(x, y, z), velocidad);
 
         return new ZombieResponse(

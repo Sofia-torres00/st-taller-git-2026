@@ -18,8 +18,17 @@ import py.edu.uc.lp3.dto.EntidadRequest;
 import py.edu.uc.lp3.dto.EntidadResponse;
 import py.edu.uc.lp3.service.EntidadService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.headers.Header;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
 @RequestMapping("/api/entidades")
+@Tag(name = "Entidades", description = "CRUD de entidades persistidas en H2")
 public class EntidadController {
     private final EntidadService service;
 
@@ -28,28 +37,48 @@ public class EntidadController {
     }
 
     @GetMapping
+    @Operation(summary = "Listar entidades", description = "Devuelve todas las entidades guardadas y sus atributos.")
+    @ApiResponse(responseCode = "200", description = "Lista de entidades; puede estar vacia")
     public List<EntidadResponse> listar() {
         return service.listar();
     }
 
     @GetMapping("/{id}")
-    public EntidadResponse obtener(@PathVariable UUID id) {
+    @Operation(summary = "Obtener una entidad por su ID")
+    @ApiResponse(responseCode = "200", description = "Entidad encontrada")
+    @ApiResponse(responseCode = "400", ref = "#/components/responses/DatosInvalidos")
+    @ApiResponse(responseCode = "404", ref = "#/components/responses/EntidadNoEncontrada")
+    public EntidadResponse obtener(@Parameter(description = "UUID de la entidad") @PathVariable UUID id) {
         return service.obtener(id);
     }
 
     @PostMapping
+    @Operation(summary = "Crear una entidad", description = "Valida los datos y atributos segun el tipo y guarda la entidad.")
+    @ApiResponse(responseCode = "201", description = "Entidad creada",
+            headers = @Header(name = "Location", description = "URL de la nueva entidad", schema = @Schema(type = "string")))
+    @ApiResponse(responseCode = "400", ref = "#/components/responses/DatosInvalidos")
     public ResponseEntity<EntidadResponse> crear(@RequestBody EntidadRequest datos) {
         EntidadResponse entidad = service.crear(datos);
         return ResponseEntity.created(URI.create("/api/entidades/" + entidad.id())).body(entidad);
     }
 
     @PutMapping("/{id}")
-    public EntidadResponse actualizar(@PathVariable UUID id, @RequestBody EntidadRequest datos) {
+    @Operation(summary = "Actualizar una entidad",
+            description = "Reemplaza nombre, salud y ubicacion; actualiza los atributos informados. El tipo no puede cambiar.")
+    @ApiResponse(responseCode = "200", description = "Entidad actualizada")
+    @ApiResponse(responseCode = "400", ref = "#/components/responses/DatosInvalidos")
+    @ApiResponse(responseCode = "404", ref = "#/components/responses/EntidadNoEncontrada")
+    public EntidadResponse actualizar(@Parameter(description = "UUID de la entidad") @PathVariable UUID id,
+            @RequestBody EntidadRequest datos) {
         return service.actualizar(id, datos);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable UUID id) {
+    @Operation(summary = "Eliminar una entidad")
+    @ApiResponse(responseCode = "204", description = "Entidad eliminada; sin cuerpo de respuesta", content = @Content)
+    @ApiResponse(responseCode = "400", ref = "#/components/responses/DatosInvalidos")
+    @ApiResponse(responseCode = "404", ref = "#/components/responses/EntidadNoEncontrada")
+    public ResponseEntity<Void> eliminar(@Parameter(description = "UUID de la entidad") @PathVariable UUID id) {
         service.eliminar(id);
         return ResponseEntity.noContent().build();
     }
