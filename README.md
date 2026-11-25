@@ -760,9 +760,8 @@ ni consume al Creeper.
 
 Esta evidencia acredita el mapa y la documentacion del consumo entre
 integrantes. El consumo A2/A3 desde el A1 de Sofi esta implementado y probado;
-la **demostracion coordinada en vivo sigue pendiente de ejecucion**. Son estados
-distintos: no se trata de un requisito de codigo faltante. Las pruebas HTTP en
-vivo requieren acceso a Tailscale y los servicios de los companeros encendidos.
+al cierre del 23/11/2026 la demostracion coordinada en vivo estaba pendiente.
+El estado posterior se registra en la [sesion grupal del 24/11/2026](#sesion-grupal-del-24112026).
 
 ### Dos participantes independientes
 
@@ -820,16 +819,17 @@ rollback distribuido ni reintentos automaticos de la detonacion.
 
 ### Referencias y arranque reproducible
 
-El ultimo commit publicado de Sofi antes de este ajuste documental es
-[269ff2081b70ed7bd9f02e4514ff61e0e6b04de5](https://github.com/Sofia-torres00/st-taller-git-2026/commit/269ff2081b70ed7bd9f02e4514ff61e0e6b04de5).
-El hash de Sofi de la tabla conserva el acuerdo anterior del grupo; no debe
-confundirse con este ultimo commit publicado ni con el futuro commit documental.
+La tabla conserva los commits originales acordados por el grupo. Para Sofi,
+`06a6fb297a5e9f9186d23b6dee7086fdaba94e30` es el acuerdo original;
+[269ff2081b70ed7bd9f02e4514ff61e0e6b04de5](https://github.com/Sofia-torres00/st-taller-git-2026/commit/269ff2081b70ed7bd9f02e4514ff61e0e6b04de5)
+es el commit documental intermedio, y
+[7915cb50709770ef9eb6f01dd8880679e68f7c41](https://github.com/Sofia-torres00/st-taller-git-2026/commit/7915cb50709770ef9eb6f01dd8880679e68f7c41)
+es el commit final entregado. Esta actualizacion documental es posterior a esa entrega.
 
 La tabla identifica los commits acordados/publicados por el grupo. No se
 clonaron ni ejecutaron esos commits ajenos durante esta revision; los hashes
-no certifican la version de los procesos actualmente encendidos. El hash
-acordado de Sofi identifica la base publicada, no incorpora automaticamente
-los cambios locales posteriores que todavia requieren revision y commit.
+no certifican la version de los procesos usados en la sesion grupal. El hash
+acordado de Sofi identifica la base publicada, no los cambios de los commits posteriores.
 
 Los comandos siguientes proceden de los README consultados previamente;
 no constituyen una prueba de arranque de los nuevos hashes acordados.
@@ -955,7 +955,7 @@ sequenceDiagram
     end
 ```
 
-### Verificacion de este cierre
+### Verificacion automatizada del cierre del 23/11/2026
 
 Resultado tecnico ya registrado de `.\mvnw.cmd clean test` con JDK 21:
 **160 tests, 0 failures, 0 errors, 0 skipped**. Las pruebas cubren aprobacion
@@ -969,10 +969,32 @@ No se volvieron a ejecutar tests para esta actualizacion exclusivamente document
 | Consumo A2/A3 | Completo | Clientes Nico/Amir y flujo A2 -> A3 implementados y probados |
 | Escenario persistido | Verificado en pruebas | Aprobacion guardada en H2 y consulta posterior; rechazos sin cambios locales |
 
-Pendientes de evidencia, no de implementacion:
+Durante ese cierre del 23/11/2026 no se ejecuto una nueva detonacion real remota;
+la demostracion coordinada quedo pendiente. Esta actualizacion solo modifica
+documentacion. No se hicieron operaciones git add, commit ni push.
 
-- Ejecutar y registrar la demostracion coordinada en vivo con los tres servicios.
+### Sesion grupal del 24/11/2026
 
-No se ejecuto una nueva detonacion real remota durante este cierre.
-Esta actualizacion solo modifica documentacion. No se hicieron operaciones
-git add, commit ni push.
+**Demostracion grupal cerrada:** los tres integrantes confirmaron la realizacion
+exitosa de los nueve casos de integracion manual en vivo del 24/11/2026.
+Registro documental del 25/11/2026. Los tres servidores estuvieron conectados
+mediante Tailscale. Resultados comunicados:
+
+- **Sofia como A1:** caso exitoso, rechazo A2 (Nico) y rechazo A3 (Amir)
+  realizados correctamente.
+- **Nicolas como A1:** caso exitoso, rechazo A2 (Amir) y rechazo A3 (Sofia)
+  realizados correctamente.
+- **Amir como A1:** caso exitoso, rechazo A2 (Sofia) y rechazo A3 (Nico)
+  realizados correctamente.
+
+Durante las pruebas de Nicolas aparecio inicialmente un HTTP 503. Segun la
+confirmacion de los participantes, se comprobo mediante curl que ambas APIs
+remotas respondian correctamente y la integracion funciono posteriormente.
+No se atribuye una causa al 503.
+
+Esta confirmacion manual es independiente de las 160 pruebas automatizadas
+anteriores y de los ejemplos offline con servicios simulados. No se aportaron
+capturas, logs, respuestas HTTP completas, hashes de los procesos ejecutados
+ni resultados SQL de la sesion; no se presentan como evidencia disponible.
+La confirmacion final de Amir completa el registro manual de los tres
+escenarios del grupo y cierra el pendiente de demostracion del 23/11/2026.

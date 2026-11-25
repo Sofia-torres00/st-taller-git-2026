@@ -10,8 +10,9 @@
 
 Cada alumno es A1 en su propia entrega. El round robin esta completo
 documentalmente: Amir documenta el consumo de la validacion de Sofi como su A2.
-La demostracion coordinada del trio en vivo no se registra como realizada;
-es evidencia adicional pendiente y requiere los servicios Tailscale encendidos.
+Al cierre del 23/11/2026 la demostracion coordinada en vivo estaba pendiente.
+La sesion del 24/11/2026, registrada mas abajo, cierra la demostracion grupal
+con los nueve casos manuales confirmados por los tres integrantes.
 
 ## Escenario implementado
 
@@ -41,7 +42,8 @@ la transaccion local de A1.
 
 ## Pruebas
 
-Resultado tecnico confirmado; no se repitieron pruebas para este ajuste documental:
+Resultado automatizado anterior, registrado en el cierre del 23/11/2026;
+no se repitieron pruebas para este ajuste documental:
 
 ```text
 160 tests
@@ -51,6 +53,30 @@ Resultado tecnico confirmado; no se repitieron pruebas para este ajuste document
 BUILD SUCCESS
 ```
 
+### Sesion manual del 24/11/2026
+
+**Demostracion grupal cerrada:** los tres integrantes confirmaron la realizacion
+exitosa de los nueve casos de integracion manual en vivo, con los tres
+servidores conectados mediante Tailscale. Registro documental del 25/11/2026:
+
+- Sofia como A1: caso exitoso, rechazo A2 (Nico) y rechazo A3 (Amir) realizados
+  correctamente.
+- Nicolas como A1: caso exitoso, rechazo A2 (Amir) y rechazo A3 (Sofia)
+  realizados correctamente.
+- Amir como A1: caso exitoso, rechazo A2 (Sofia) y rechazo A3 (Nico) realizados
+  correctamente.
+
+En las pruebas de Nicolas aparecio inicialmente un HTTP 503. Segun los
+participantes, se comprobo mediante curl que ambas APIs remotas respondian
+correctamente y la integracion funciono posteriormente. No se atribuye una
+causa al 503.
+
+Esta prueba manual es independiente de las 160 pruebas automatizadas y de los
+ejemplos offline con servicios simulados. No se aportaron capturas, logs,
+respuestas HTTP completas, hashes de los procesos ejecutados ni resultados
+SQL de la sesion. El cierre se registra como confirmacion manual de los
+participantes, sin atribuir verificaciones adicionales.
+
 ## Insomnia
 
 Archivo: [docs/insomnia/sofi-poo09.yaml](insomnia/sofi-poo09.yaml).
@@ -59,13 +85,18 @@ Incluye caso feliz, consulta posterior y rechazos A2/A3 con sus consultas poster
 
 ## Commits de referencia del grupo
 
-- Sofi: [269ff2081b70ed7bd9f02e4514ff61e0e6b04de5](https://github.com/Sofia-torres00/st-taller-git-2026/commit/269ff2081b70ed7bd9f02e4514ff61e0e6b04de5), commit publicado anterior a este ultimo ajuste documental.
+- Sofi, acuerdo original: [06a6fb297a5e9f9186d23b6dee7086fdaba94e30](https://github.com/Sofia-torres00/st-taller-git-2026/commit/06a6fb297a5e9f9186d23b6dee7086fdaba94e30).
+- Sofi, commit documental intermedio: [269ff2081b70ed7bd9f02e4514ff61e0e6b04de5](https://github.com/Sofia-torres00/st-taller-git-2026/commit/269ff2081b70ed7bd9f02e4514ff61e0e6b04de5).
 - Nico: [e9db16a93c925928734932e2759459a08747a1dd](https://github.com/NicoRodriguez85677/NRodriguez-taller-git-2026/commit/e9db16a93c925928734932e2759459a08747a1dd).
 - Amir: [a6e6b14a3626f1cf6cfa48547fb4b1d5596a03fb](https://github.com/AmirDujak/adb-taller-git-2026/commit/a6e6b14a3626f1cf6cfa48547fb4b1d5596a03fb).
 
 Son referencias publicadas/acordadas; no se afirma que estos commits ajenos
-fueran clonados y ejecutados durante la revision.
+fueran clonados y ejecutados durante la revision ni que identifiquen los
+procesos de la sesion del 24/11/2026.
 
 ## Entrega final
 
-El hash exacto del commit final se consigna en Classroom junto con este documento.
+Commit final entregado de Sofia:
+[7915cb50709770ef9eb6f01dd8880679e68f7c41](https://github.com/Sofia-torres00/st-taller-git-2026/commit/7915cb50709770ef9eb6f01dd8880679e68f7c41).
+Se distingue del acuerdo original y del commit intermedio indicados arriba.
+Esta actualizacion documental es posterior a esa entrega.

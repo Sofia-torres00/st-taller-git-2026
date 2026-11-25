@@ -121,3 +121,69 @@ Se preparo `docs/POO-09-Sofia-Torres.md` para Classroom. El commit publicado de
 Sofi anterior a este ajuste es `269ff2081b70ed7bd9f02e4514ff61e0e6b04de5`;
 el hash final se completara despues del commit documental. No se modifico
 codigo ni se regenero OpenAPI. No se hizo git add, commit ni push.
+
+## POO-09 - registro de la sesion grupal del 24/11/2026 - 25/11/2026
+
+Se actualizan exclusivamente README.md, BITACORA.md y
+docs/POO-09-Sofia-Torres.md a partir de la confirmacion de los participantes.
+Se conservan las entradas del 23/11/2026 como antecedentes del estado previo;
+sus menciones de demostracion pendiente corresponden a ese cierre.
+
+En la sesion del 24/11/2026 se realizaron pruebas manuales de integracion en
+vivo con los tres servidores conectados mediante Tailscale:
+
+- Sofia como A1: caso exitoso, rechazo de Nico y rechazo de Amir realizados
+  correctamente, segun confirmacion de los participantes.
+- Nicolas como A1: caso exitoso, rechazo de Amir y rechazo de Sofia realizados
+  correctamente, segun confirmacion de los participantes.
+- Amir como A1: pendiente de confirmacion final.
+
+Durante las pruebas de Nicolas aparecio inicialmente un HTTP 503. Los
+participantes confirmaron que se comprobo mediante curl que ambas APIs remotas
+respondian correctamente y que la integracion funciono posteriormente.
+No se atribuye una causa al 503.
+
+Es una confirmacion manual, separada del resultado previo de las 160 pruebas
+automatizadas y de los ejemplos offline con servicios simulados. No se
+aportaron capturas, logs, respuestas HTTP completas, hashes de los procesos
+ejecutados ni resultados SQL de esa sesion. No se declara finalizada la
+demostracion de Amir como A1 ni se afirman verificaciones adicionales.
+
+Se mantiene la tabla A1/A2/A3 y los commits originales acordados del README.
+Para Sofia se distinguen el acuerdo original
+`06a6fb297a5e9f9186d23b6dee7086fdaba94e30`, el commit documental intermedio
+`269ff2081b70ed7bd9f02e4514ff61e0e6b04de5` y el commit final entregado
+`7915cb50709770ef9eb6f01dd8880679e68f7c41`. Este ultimo completa la referencia
+que habia quedado anunciada en la entrada anterior; ninguno de esos hashes
+se atribuye a los procesos de la sesion sin evidencia de su version.
+
+No se modifican Java, tests, configuraciones, contratos OpenAPI, archivos de
+Insomnia ni bases de datos. No se ejecutaron pruebas ni llamadas a los
+servidores para esta actualizacion. No se hizo git add, commit ni push.
+Asistente: Codex / OpenAI.
+
+## POO-09 - cierre de la demostracion grupal del 24/11/2026 - 25/11/2026
+
+Los tres integrantes confirmaron que completaron exitosamente los nueve casos
+de integracion manual en vivo durante la sesion del 24/11/2026, con los tres
+servidores conectados mediante Tailscale:
+
+- Sofia como A1: caso exitoso, rechazo A2 (Nico) y rechazo A3 (Amir).
+- Nicolas como A1: caso exitoso, rechazo A2 (Amir) y rechazo A3 (Sofia).
+- Amir como A1: caso exitoso, rechazo A2 (Sofia) y rechazo A3 (Nico).
+
+Esta confirmacion final cierra la demostracion grupal. La entrada anterior
+conserva la confirmacion parcial recibida, incluido el pendiente de Amir que
+ahora queda cerrado y el antecedente del HTTP 503 en las pruebas de Nicolas.
+
+Los nueve casos manuales confirmados por los integrantes son independientes
+de las 160 pruebas automatizadas anteriores y de los ejemplos offline con
+servicios simulados. No se aportaron capturas, logs, respuestas HTTP completas,
+hashes de los procesos ejecutados ni resultados SQL de la sesion.
+
+Se actualizan unicamente README.md, BITACORA.md y docs/POO-09-Sofia-Torres.md.
+Se conservan los antecedentes, las tablas round robin y la distincion entre
+commits acordados, intermedio y entregado. No se modifican Java,
+configuraciones, tests, contratos OpenAPI, archivos de Insomnia ni bases de
+datos. No se ejecutaron pruebas ni llamadas a servidores para esta actualizacion.
+No se hizo git add, commit ni push. Asistente: Codex / OpenAI.
